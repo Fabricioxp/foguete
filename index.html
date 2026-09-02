@@ -22,47 +22,16 @@ let renderer,scene,camera,clock;
 try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setSize(innerWidth,innerHeight);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;holder.appendChild(renderer.domElement);}catch(e){document.body.innerHTML='<div style="padding:30px;color:white">Seu navegador não conseguiu iniciar o gráfico 3D.</div>';return;}
 scene=new THREE.Scene();scene.background=new THREE.Color(0x78b9ed);scene.fog=new THREE.FogExp2(0x8cc5ee,.0018);camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.05,100000);camera.position.set(0,.05,1.35);clock=new THREE.Clock();
 scene.add(new THREE.HemisphereLight(0xbfe3ff,0x22311f,1.25));const sun=new THREE.DirectionalLight(0xfff4df,1.5);sun.position.set(-30,40,20);scene.add(sun);
-// ÁUDIO IMERSIVO: usa gravações reais de missões da NASA + efeitos sincronizados.
+// ÁUDIO IMERSIVO: sintetizado no próprio navegador, sem depender de arquivos externos.
 let audioCtx=null,audioOn=true,masterGain=null,engineGain=null,windGain=null,engineOsc1=null,engineOsc2=null,windSource=null,lastAnnouncement='',lastCount=-1;
-const SOUND={
-  countdown:'https://www.nasa.gov/wp-content/uploads/2015/01/590320main_ringtone_apollo11_countdown.mp3',
-  launch:'https://www.nasa.gov/wp-content/uploads/2015/01/590329main_ringtone_SDO_launchNats.mp3',
-  liftoff:'https://www.nasa.gov/wp-content/uploads/2015/01/590320main_ringtone_apollo11_countdown.mp3',
-  landed:'https://www.nasa.gov/wp-content/uploads/2015/01/569462main_eagle_has_landed.mp3',
-  quindar:'https://www.nasa.gov/wp-content/uploads/2015/01/578628main_hskquindar.mp3'
-};
-const clips={};
-for(const [name,url] of Object.entries(SOUND)){const a=new Audio(url);a.preload='auto';a.crossOrigin='anonymous';clips[name]=a}
-function stopClip(name){const a=clips[name];if(!a)return;a.pause();try{a.currentTime=0}catch(e){}}
-function playClip(name,{volume=.7,restart=true,loop=false}={}){if(!audioOn)return;const a=clips[name];if(!a)return;if(restart){try{a.currentTime=0}catch(e){}}a.loop=loop;a.volume=volume;const pr=a.play();if(pr&&pr.catch)pr.catch(()=>{});}
-function stopAllVoice(){for(const n of ['countdown','liftoff','landed'])stopClip(n)}
 function makeNoise(ctx){const b=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const src=ctx.createBufferSource();src.buffer=b;src.loop=true;return src}
-function initAudio(){if(audioCtx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audioCtx=new AC();masterGain=audioCtx.createGain();masterGain.gain.value=.45;masterGain.connect(audioCtx.destination);
- engineGain=audioCtx.createGain();engineGain.gain.value=0;engineGain.connect(masterGain);engineOsc1=audioCtx.createOscillator();engineOsc2=audioCtx.createOscillator();engineOsc1.type='sawtooth';engineOsc2.type='triangle';engineOsc1.frequency.value=38;engineOsc2.frequency.value=73;const g2=audioCtx.createGain();g2.gain.value=.18;engineOsc2.connect(g2);engineOsc1.connect(engineGain);g2.connect(engineGain);engineOsc1.start();engineOsc2.start();
+function initAudio(){if(audioCtx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;audioCtx=new AC();masterGain=audioCtx.createGain();masterGain.gain.value=.55;masterGain.connect(audioCtx.destination);
+ engineGain=audioCtx.createGain();engineGain.gain.value=0;engineGain.connect(masterGain);engineOsc1=audioCtx.createOscillator();engineOsc2=audioCtx.createOscillator();engineOsc1.type='sawtooth';engineOsc2.type='triangle';engineOsc1.frequency.value=38;engineOsc2.frequency.value=73;const g2=audioCtx.createGain();g2.gain.value=.22;engineOsc2.connect(g2);engineOsc1.connect(engineGain);g2.connect(engineGain);engineOsc1.start();engineOsc2.start();
  windSource=makeNoise(audioCtx);const filter=audioCtx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=650;windGain=audioCtx.createGain();windGain.gain.value=0;windSource.connect(filter);filter.connect(windGain);windGain.connect(masterGain);windSource.start();}
 function beep(freq=880,dur=.12,vol=.12){if(!audioOn)return;initAudio();if(!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,audioCtx.currentTime);g.gain.linearRampToValueAtTime(vol,audioCtx.currentTime+.015);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.connect(g);g.connect(masterGain);o.start();o.stop(audioCtx.currentTime+dur+.02)}
-function missionRadio(state){
- if(state===lastAnnouncement)return;lastAnnouncement=state;
- // Os clipes são disparados somente na transição de fase, evitando repetição/descompasso.
- if(state==='COUNT'){playClip('countdown',{volume:.78,restart:true});}
- else if(state==='IGNITION'){playClip('quindar',{volume:.28,restart:true});}
- else if(state==='ASCENT'){stopClip('countdown');playClip('launch',{volume:.82,restart:true});}
- else if(state==='SPACE'){playClip('quindar',{volume:.16,restart:true});}
- else if(state==='ENTRY'){playClip('quindar',{volume:.2,restart:true});}
- else if(state==='LANDED'){stopClip('launch');playClip('landed',{volume:.85,restart:true});}
-}
-function updateLaunchAmbience(state,thrust,speed){
- if(!audioOn)return;
- const launch=clips.launch;if(launch){
-   const active=state==='IGNITION'||state==='ASCENT';
-   const target=active?Math.min(.8,.18+thrust/1.25e7):0;
-   launch.volume+=(target-launch.volume)*.12;
-   if(active&&launch.paused){launch.loop=true;const pr=launch.play();if(pr&&pr.catch)pr.catch(()=>{});} 
-   if(!active&&!launch.paused){launch.pause();}
- }
-}
-audioBtn.addEventListener('click',()=>{audioOn=!audioOn;if(audioOn){initAudio();audioCtx?.resume();audioBtn.textContent='🔊';beep(720,.1,.08)}else{audioBtn.textContent='🔇';for(const a of Object.values(clips))a.pause();if(masterGain)masterGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.03);}});
-
+function speak(text){if(!audioOn||!('speechSynthesis'in window)||!text)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);const voices=speechSynthesis.getVoices();u.voice=voices.find(v=>/^en-US/i.test(v.lang))||voices.find(v=>/^en/i.test(v.lang))||null;u.lang='en-US';u.rate=.93;u.pitch=.95;u.volume=.9;speechSynthesis.speak(u)}
+function announce(state){if(state===lastAnnouncement)return;lastAnnouncement=state;const lines={COUNT:'Launch sequence initiated. Five, four, three, two, one.',IGNITION:'Main engines ignition.',ASCENT:'Liftoff. We have liftoff.',SPACE:'Leaving the atmosphere.',CRUISE:'Spaceflight stable. Welcome to space.',APPROACH:'Destination planet detected. Beginning approach.',ENTRY:'Atmospheric entry initiated.',LANDING:'Landing sequence in progress.',LANDED:'Touchdown confirmed. Welcome to our destination.'};if(lines[state])speak(lines[state])}
+audioBtn.addEventListener('click',()=>{audioOn=!audioOn;if(audioOn){initAudio();audioCtx?.resume();audioBtn.textContent='🔊';beep(720,.1,.1)}else{audioBtn.textContent='🔇';if(masterGain)masterGain.gain.setTargetAtTime(.0001,audioCtx.currentTime,.03);window.speechSynthesis?.cancel()}});
 
 const cockpit=new THREE.Group();scene.add(cockpit);const dark=new THREE.MeshStandardMaterial({color:0x171a1f,metalness:.72,roughness:.34});const metal=new THREE.MeshStandardMaterial({color:0x4d535a,metalness:.9,roughness:.25});const panelMat=new THREE.MeshStandardMaterial({color:0x24282d,metalness:.55,roughness:.32});const soft=new THREE.MeshStandardMaterial({color:0x31353b,metalness:.2,roughness:.85});
 function box(w,h,d,x,y,z,m=dark,g=cockpit){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);g.add(o);return o}function cyl(r1,r2,h,x,y,z,m=metal,g=cockpit,rot=null){const o=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,16),m);o.position.set(x,y,z);if(rot)o.rotation.set(...rot);g.add(o);return o}
@@ -72,9 +41,14 @@ for(const x of[-1.9,-1.25,-.62,.62,1.25,1.9]){const r=box(.1,.18,5.7,x,2.02,-.1,
 for(const z of[-2.1,-.8,.5,1.75]){box(.12,.12,4.05,-2.18,.02,z,metal);box(.12,.12,4.05,2.18,.02,z,metal)}
 // painel traseiro/porta
 box(2.3,2.8,.12,0,.05,2.73,soft);box(1.8,2.3,.14,0,.05,2.61,dark);const hatch=cyl(.92,.92,.08,0,.05,2.52,metal,cockpit,[Math.PI/2,0,0]);for(let i=0;i<8;i++){const a=i*Math.PI/4;const b=cyl(.06,.06,.05,Math.cos(a)*1.05,.05+Math.sin(a)*1.05,2.46,metal,cockpit,[Math.PI/2,0,0]);}
-// grande janela frontal sem bloquear visão
-const glass=new THREE.Mesh(new THREE.PlaneGeometry(4.15,3.55),new THREE.MeshBasicMaterial({color:0xa8dfff,transparent:true,opacity:.035,side:THREE.DoubleSide}));glass.position.set(0,.08,-2.94);cockpit.add(glass);
+// JANELA DE OBSERVAÇÃO: a cabine é orientada no eixo do foguete; a vista principal é para o céu/nariz.
+const glass=new THREE.Mesh(new THREE.PlaneGeometry(4.15,3.55),new THREE.MeshBasicMaterial({color:0xa8dfff,transparent:true,opacity:.028,side:THREE.DoubleSide}));glass.position.set(0,.08,-2.94);cockpit.add(glass);
 box(4.55,.22,.22,0,1.95,-2.95,metal);box(4.55,.22,.22,0,-1.7,-2.95,metal);box(.22,3.85,.22,-2.12,.12,-2.95,metal);box(.22,3.85,.22,2.12,.12,-2.95,metal);box(.12,3.6,.14,0,.1,-2.96,metal);
+// travessas e reforços da janela para dar escala e profundidade
+for(const x of[-1.35,-.68,0,.68,1.35])box(.055,3.48,.06,x,.12,-2.90,trimMat);
+// claraboia superior: olhando para cima o passageiro vê a direção de voo, coerente com o foguete na vertical
+const topGlass=new THREE.Mesh(new THREE.PlaneGeometry(3.55,4.4),new THREE.MeshBasicMaterial({color:0x9ed7ff,transparent:true,opacity:.02,side:THREE.DoubleSide}));topGlass.rotation.x=Math.PI/2;topGlass.position.set(0,2.05,-.45);cockpit.add(topGlass);
+box(3.85,.16,.18,0,2.05,-2.52,metal);box(3.85,.16,.18,0,2.05,1.62,metal);box(.18,.16,4.25,-1.83,2.05,-.45,metal);box(.18,.16,4.25,1.83,2.05,-.45,metal);
 // assentos visíveis apenas perifericamente
 for(const x of[-1.15,1.15]){box(.9,.18,1.05,x,-1.42,1.25,soft);box(.9,1.5,.22,x,-.55,1.7,soft);box(.12,.18,1.2,x-.48,-1.5,1.2,metal);box(.12,.18,1.2,x+.48,-1.5,1.2,metal)}
 // painel inclinado
@@ -209,6 +183,22 @@ const grain=makeGrainTexture();const rearLining=new THREE.Mesh(new THREE.PlaneGe
 // visor superior e colunas frontais reforçadas, deixando o exterior visível
 for(const x of[-1.42,1.42]){const pillar=box(.16,3.3,.22,x,.12,-2.72,trimMat);pillar.rotation.z=x<0?-.13:.13}
 const visorShade=box(3.0,.14,.22,0,1.72,-2.76,rubberMat);
+// DETALHES INTERNOS: isolamento, dutos, luzes, armários e estrutura do teto
+const insulationMat=new THREE.MeshStandardMaterial({color:0x4a4f55,metalness:.12,roughness:.92});
+for(const side of[-1,1]){
+  for(let z=-2.15;z<2.15;z+=.48){for(let y=-1.45;y<1.7;y+=.48){
+    const pad=box(.035,.40,.40,side*2.22,y,z,insulationMat);pad.rotation.z=side*.035;
+  }}
+  for(let z=-2.2;z<=1.9;z+=.68){const conduit=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.72,10),trimMat);conduit.rotation.z=Math.PI/2;conduit.position.set(side*2.05,1.62,z);cockpit.add(conduit)}
+}
+for(const z of[-1.9,-1.15,-.4,.35,1.1]){const beam=box(4.15,.11,.10,0,1.88,z,trimMat);beam.rotation.z=.015*Math.sin(z*2)}
+for(const x of[-1.45,1.45]){const vent=new THREE.Group();for(let i=0;i<7;i++){const slat=box(.34,.025,.035,x+(i%2)*.015,1.72+i*.035,-2.63,metal,vent);slat.rotation.z=.04}vent.position.z=.04;cockpit.add(vent)}
+for(const x of[-1.65,1.65]){const emergency=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),new THREE.MeshStandardMaterial({color:0xff563d,emissive:0x66140d,emissiveIntensity:.9}));emergency.position.set(x,1.48,-2.70);cockpit.add(emergency)}
+// pequenas luzes lineares no teto
+for(const x of[-1.28,1.28]){const strip=new THREE.Mesh(new THREE.BoxGeometry(.08,.035,3.7),new THREE.MeshStandardMaterial({color:0xffd4a8,emissive:0xff7a36,emissiveIntensity:.38}));strip.position.set(x,1.96,-.35);cockpit.add(strip)}
+// caixas de equipamentos laterais e cintos dos assentos
+for(const x of[-1.65,1.65]){box(.38,.52,.64,x,-.98,1.0,new THREE.MeshStandardMaterial({color:0x293039,metalness:.55,roughness:.42}));for(const yy of[-.16,.16])box(.045,.04,.52,x,-.75+yy,1.0,new THREE.MeshStandardMaterial({color:0x8b8f94,metalness:.7,roughness:.3}));}
+
 // iluminação de instrumentos, separada da iluminação do ambiente
 const dashGlow=new THREE.PointLight(0x5fb8ff,.55,4);dashGlow.position.set(0,-.3,-1.25);cockpit.add(dashGlow);
 
@@ -239,13 +229,30 @@ function updateScreens(){
  c.fillStyle='#eaf7ff';c.font='bold 60px Arial';c.fillText((s.alt/1000).toFixed(s.alt<10000?1:0)+' km',54,206);c.fillStyle='#778692';c.font='20px Arial';c.fillText('ALTITUDE',58,238);c.fillStyle='#ffffff';c.font='bold 42px Arial';c.fillText(fmt(s.v*3.6)+' km/h',54,326);c.fillStyle='#778692';c.font='20px Arial';c.fillText('VELOCIDADE • MACH '+mach.toFixed(1),58,356);
  c.save();c.translate(765,265);c.strokeStyle='#66cdf5';c.lineWidth=4;c.beginPath();c.arc(0,0,145,0,Math.PI*2);c.stroke();c.save();c.rotate(Math.max(-.55,Math.min(.55,pitch)));c.fillStyle='#4e9ac7';c.fillRect(-135,-75,270,75);c.fillStyle='#8f513f';c.fillRect(-135,0,270,75);c.restore();c.strokeStyle='#f2f7fb';c.lineWidth=3;c.beginPath();c.moveTo(-110,0);c.lineTo(110,0);c.moveTo(0,-26);c.lineTo(0,26);c.stroke();c.restore();
  c.fillStyle='#91a5b1';c.font='18px Arial';c.fillText('ACELERAÇÃO '+accel.toFixed(2)+' m/s²',55,430);c.fillText('GRAVIDADE LOCAL '+(9.81*Math.max(.22,1-s.alt/650000)).toFixed(2)+' m/s²',55,465);c.fillStyle='#a9e7ff';c.font='bold 18px Arial';c.fillText(phaseName(),55,540);c.fillStyle='#72828e';c.font='17px Arial';c.fillText('TEMPO DE MISSÃO '+Math.floor(elapsed/60).toString().padStart(2,'0')+':'+Math.floor(elapsed%60).toString().padStart(2,'0'),55,585);
- c=bg(scr3,'MISSÃO','#73dfa5');
- const idx={READY:0,COUNT:0,IGNITION:1,ASCENT:3,SPACE:6,CRUISE:7,APPROACH:8,ENTRY:9,LANDING:10,LANDED:10}[s.state]??0;
- const left=62,top=154;phases.forEach((p,i)=>{const y=top+i*39;c.fillStyle=i<idx?'#2f8b64':i===idx?'#7cebb3':'#2c3941';c.beginPath();c.arc(left,y,11,0,Math.PI*2);c.fill();if(i<phases.length-1){c.strokeStyle=i<idx?'#4fc98d':'#26343b';c.lineWidth=4;c.beginPath();c.moveTo(left,y+11);c.lineTo(left,y+28);c.stroke()}c.fillStyle=i===idx?'#effff6':i<idx?'#b6f2d1':'#80909a';c.font=i===idx?'bold 21px Arial':'20px Arial';c.fillText(p,left+32,y+7)});
- const ratio=idx/(phases.length-1);c.fillStyle='#15232a';c.fillRect(500,485,450,32);c.fillStyle='#6fe0a0';c.fillRect(500,485,450*ratio,32);c.strokeStyle='rgba(255,255,255,.15)';c.strokeRect(500,485,450,32);c.fillStyle='#dff8ea';c.font='18px Arial';c.fillText('PROGRESSO '+(ratio*100).toFixed(0)+'%',500,465);c.fillStyle='#81929d';c.font='17px Arial';c.fillText('DESTINO: PLANETA DA NOSSA VIAGEM',500,555);c.fillText('SISTEMA: '+phaseName(),500,590);
+ c=bg(scr3,'ROTA DA MISSÃO','#73dfa5');
+ // mapa orbital contínuo: a nave percorre a mesma rota que aparece durante toda a missão
+ const cx=330,cy=330;const routeProgress=s.state==='CRUISE'||s.state==='APPROACH'?s.progress:Math.min(.16,s.alt/115000*.16);
+ c.save();c.translate(cx,cy);
+ c.strokeStyle='rgba(104,198,255,.34)';c.lineWidth=4;c.beginPath();c.arc(0,0,112,0,Math.PI*2);c.stroke();
+ c.strokeStyle='rgba(255,255,255,.11)';c.lineWidth=2;for(let r=155;r<=250;r+=48){c.beginPath();c.arc(0,0,r,0,Math.PI*2);c.stroke()}
+ // Terra
+ c.fillStyle='#1d88df';c.beginPath();c.arc(0,0,44,0,Math.PI*2);c.fill();c.fillStyle='rgba(255,255,255,.45)';c.beginPath();c.arc(-12,-12,20,0,Math.PI*2);c.fill();
+ // rota de transferência, sem teleporte visual
+ c.strokeStyle='#74e7ad';c.lineWidth=4;c.setLineDash([9,9]);c.beginPath();c.moveTo(45,-4);c.bezierCurveTo(160,-150,280,-125,330,-36);c.stroke();c.setLineDash([]);
+ // destino
+ c.fillStyle='#c85a38';c.beginPath();c.arc(330,-36,30,0,Math.PI*2);c.fill();
+ const u=Math.max(0,Math.min(1,routeProgress));const sx=45+(330-45)*u;const sy=-4+(-32+4)*u-95*Math.sin(Math.PI*u);
+ c.fillStyle='#ecfff5';c.beginPath();c.moveTo(sx+10,sy);c.lineTo(sx-9,sy-6);c.lineTo(sx-9,sy+6);c.closePath();c.fill();
+ c.restore();
+ c.fillStyle='#b9c8d0';c.font='bold 18px Arial';c.fillText('TERRA',210,420);c.fillText('DESTINO',610,290);
+ c.fillStyle='#6fe0a0';c.font='bold 22px Arial';c.fillText('ROTA '+(u*100).toFixed(1)+'%',575,152);
+ c.fillStyle='#b8c4cc';c.font='18px Arial';c.fillText('FASE: '+phaseName(),575,190);
+ c.fillText('ALTITUDE: '+(s.alt/1000).toFixed(1)+' km',575,225);
+ c.fillText('VELOCIDADE: '+fmt(s.v*3.6)+' km/h',575,260);
+ c.fillStyle='#778692';c.font='16px Arial';c.fillText('TRAJETÓRIA CONTÍNUA • SEM CORTES DE CENA',575,545);
  for(const sc of[scr1,scr2,scr3])sc.tx.needsUpdate=true;
 }
-function physics(dt){const s=sim;s.t+=dt;missionRadio(s.state);updateLaunchAmbience(s.state,s.thrust,s.v);if(audioOn){initAudio();if(audioCtx&&masterGain.gain.value<.1)masterGain.gain.setTargetAtTime(.55,audioCtx.currentTime,.05);if(engineGain){const active=s.state==='IGNITION'||s.state==='ASCENT'||s.state==='SPACE';const target=active?Math.min(.52,.08+s.thrust/2.0e7):s.state==='ENTRY'||s.state==='LANDING'?.12:0;engineGain.gain.setTargetAtTime(target,audioCtx.currentTime,.06);engineOsc1.frequency.setTargetAtTime(32+Math.min(55,s.v/1000),audioCtx.currentTime,.08);engineOsc2.frequency.setTargetAtTime(65+Math.min(80,s.v/800),audioCtx.currentTime,.08);windGain.gain.setTargetAtTime(s.state==='ASCENT'?Math.min(.18,s.v/70000):0,audioCtx.currentTime,.08)}}if(s.state==='COUNT'){s.count=Math.max(0,Math.ceil(5-s.t));if(s.count!==lastCount){lastCount=s.count;if(s.count>0)beep(700+s.count*70,.11,.11)}btn.textContent=s.count>0?'T− '+s.count:'IGNIÇÃO';if(s.t>=4){s.state='IGNITION';s.t=0;btn.disabled=true;hint.textContent='Motores acesos. Segurem-se.'}}
+function physics(dt){const s=sim;s.t+=dt;announce(s.state);if(audioOn){initAudio();if(audioCtx&&masterGain.gain.value<.1)masterGain.gain.setTargetAtTime(.55,audioCtx.currentTime,.05);if(engineGain){const active=s.state==='IGNITION'||s.state==='ASCENT'||s.state==='SPACE';const target=active?Math.min(.52,.08+s.thrust/2.0e7):s.state==='ENTRY'||s.state==='LANDING'?.12:0;engineGain.gain.setTargetAtTime(target,audioCtx.currentTime,.06);engineOsc1.frequency.setTargetAtTime(32+Math.min(55,s.v/1000),audioCtx.currentTime,.08);engineOsc2.frequency.setTargetAtTime(65+Math.min(80,s.v/800),audioCtx.currentTime,.08);windGain.gain.setTargetAtTime(s.state==='ASCENT'?Math.min(.18,s.v/70000):0,audioCtx.currentTime,.08)}}if(s.state==='COUNT'){s.count=Math.max(0,Math.ceil(5-s.t));if(s.count!==lastCount){lastCount=s.count;if(s.count>0)beep(700+s.count*70,.11,.11)}btn.textContent=s.count>0?'T− '+s.count:'IGNIÇÃO';if(s.t>=4){s.state='IGNITION';s.t=0;btn.disabled=true;hint.textContent='Motores acesos. Segurem-se.'}}
 else if(s.state==='IGNITION'){s.thrust=Math.min(8.2e6,s.thrust+dt*2.8e6);s.shake=.05;if(s.t>2.2){s.state='ASCENT';s.t=0;}}
 else if(s.state==='ASCENT'||s.state==='SPACE'){const rho=Math.max(0,1-s.alt/90000),g=9.81*Math.max(.22,1-s.alt/650000);s.thrust=s.state==='ASCENT'?8.2e6:1.5e6;const drag=.00042*rho*s.v*Math.abs(s.v);s.mass=140000+s.fuel;s.fuel=Math.max(0,s.fuel-dt*(s.state==='ASCENT'?1700:350));s.v+=((s.thrust-drag-s.mass*g)/Math.max(s.mass,1))*dt;s.v=Math.max(0,s.v);s.alt+=s.v*dt;s.shake=.06*Math.max(0,1-s.alt/70000);if(s.alt>25000&&s.alt<42000)hint.textContent='Máxima pressão atmosférica — vibração diminuindo.';if(s.alt>70000)s.state='SPACE';if(s.alt>115000){s.state='CRUISE';s.t=0;s.v=27000;hint.textContent='Motores principais estabilizados. Estamos no espaço.'}}
 else if(s.state==='CRUISE'){s.progress=Math.min(1,s.progress+dt*.065);s.v=27000;if(s.progress>.72){s.state='APPROACH';s.t=0;mars.visible=true;hint.textContent='Planeta de destino detectado à frente.'}}
@@ -253,12 +260,24 @@ else if(s.state==='APPROACH'){s.progress=Math.min(1,s.progress+dt*.04);if(s.t>7)
 else if(s.state==='ENTRY'){s.landingAlt=Math.max(20,s.landingAlt-dt*11);s.v=Math.max(600,s.v-dt*1200);if(s.t>7){s.state='LANDING';s.t=0;}}
 else if(s.state==='LANDING'){s.landingAlt=Math.max(0,s.landingAlt-dt*9);s.v=Math.max(0,s.v-dt*180);if(s.landingAlt<=.5){s.state='LANDED';btn.disabled=false;btn.textContent='POUSO CONCLUÍDO ❤️';hint.textContent='Vocês chegaram ao destino.'}}
 }
-btn.addEventListener('click',()=>{if(sim.state==='READY'){initAudio();audioCtx?.resume();lastAnnouncement='';lastCount=-1;stopAllVoice();beep(880,.12,.08);sim.state='COUNT';sim.t=0;btn.disabled=true;hint.textContent='Contagem iniciada. Arraste para olhar naturalmente pela cabine.'}});
+btn.addEventListener('click',()=>{if(sim.state==='READY'){initAudio();audioCtx?.resume();lastAnnouncement='';lastCount=-1;beep(880,.12,.12);sim.state='COUNT';sim.t=0;btn.disabled=true;hint.textContent='Contagem iniciada. Arraste para olhar naturalmente pela cabine.'}});
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);physics(dt);const s=sim;
-// transição visual contínua Terra -> espaço
-const spaceMix=Math.max(0,Math.min(1,(s.alt-18000)/110000));scene.background.setRGB(.47*(1-spaceMix)+.008*spaceMix,.73*(1-spaceMix)+.014*spaceMix,.92*(1-spaceMix)+.035*spaceMix);scene.fog.color.copy(scene.background);scene.fog.density=.0018*(1-spaceMix)+.000015*spaceMix;starMat.opacity=Math.pow(spaceMix,1.8)*.95;earth.visible=s.alt>55000&&s.state!=='ENTRY'&&s.state!=='LANDING'&&s.state!=='LANDED';earthCloud.visible=earth.visible;if(earth.visible){earth.position.y=-430-Math.min(1100,(s.alt-55000)/160);earthCloud.position.copy(earth.position);earth.rotation.y+=dt*.025}
-clouds.visible=s.alt<75000;if(clouds.visible)clouds.position.y=-Math.min(350,s.alt*.012);
-if(mars.visible){mars.position.z=-2600+s.progress*2050;mars.position.y=85-(s.progress*.55)*80;mars.scale.setScalar(.7+s.progress*1.1);}
+// TRANSIÇÃO CONTÍNUA: não há troca de cenário. O céu escurece com a altitude e a Terra fica abaixo da nave.
+const spaceMix=Math.max(0,Math.min(1,(s.alt-12000)/108000));
+scene.background.setRGB(.48*(1-spaceMix)+.004*spaceMix,.73*(1-spaceMix)+.008*spaceMix,.94*(1-spaceMix)+.020*spaceMix);
+scene.fog.color.copy(scene.background);scene.fog.density=.00165*(1-spaceMix)+.000008*spaceMix;
+starMat.opacity=Math.pow(spaceMix,1.55)*.98;
+// A Terra nunca se move em direção à cabine: sua distância aumenta com a altitude.
+earth.visible=s.alt>18000&&s.state!=='ENTRY'&&s.state!=='LANDING'&&s.state!=='LANDED';earthCloud.visible=earth.visible;
+if(earth.visible){
+ const visualAltitude=Math.max(0,s.alt-18000);
+ const dist=430+visualAltitude*.0105;
+ earth.position.set(0,-dist,140+Math.min(220,visualAltitude*.002));
+ earth.scale.setScalar(1+Math.min(.14,visualAltitude/600000));
+ earthCloud.position.copy(earth.position);earthCloud.scale.copy(earth.scale);earth.rotation.y+=dt*.018;
+}
+clouds.visible=s.alt<90000;if(clouds.visible){clouds.position.y=-Math.min(520,s.alt*.010);clouds.position.z=-Math.min(500,s.alt*.004);}
+if(mars.visible){mars.position.z=-2600+s.progress*2050;mars.position.y=65-(s.progress*.48)*80;mars.scale.setScalar(.72+s.progress*1.05);}
 engineLight.intensity=(s.state==='IGNITION'||s.state==='ASCENT')?2.2*Math.min(1,s.thrust/8200000):.15;
 const sh=s.shake;cockpit.position.x=(Math.random()-.5)*sh;cockpit.position.y=(Math.random()-.5)*sh*.65;cockpit.rotation.z=(Math.random()-.5)*sh*.04;camera.rotation.set(pitch,yaw,0,'YXZ');phaseEl.textContent=phaseName();updateScreens();drawDashboard();renderer.render(scene,camera)}animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio||1,2))});
