@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viagem Espacial - Cabine do Foguete</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* HUD da Cabine */
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.7);
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #hud h1 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        #hud p {
+            margin: 3px 0;
+            font-size: 0.9rem;
+        }
+
+        /* Botão de Controle Principal */
+        #launch-btn {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #ff0055, #ff5500);
+            border: 2px solid #ffcc00;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+            transition: all 0.3s ease;
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+
+        #launch-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.9);
+        }
+
+        #launch-btn:disabled {
+            background: #444;
+            border-color: #666;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Efeito de Vidro do Capacete/Cockpit */
+        #visor-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            box-shadow: inset 0 0 100px rgba(0, 150, 255, 0.2);
+            background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+            z-index: 5;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="hud">
+        <h1 id="status-title">SISTEMA: PRONTO PARA DECOLAGEM</h1>
+        <p>ALTITUDE: <span id="tele-alt">0</span> km</p>
+        <p>VELOCIDADE: <span id="tele-speed">0</span> km/h</p>
+        <p>DESTINO: MARTE</p>
+    </div>
+
+    <button id="launch-btn">INICIAR DECOLAGEM</button>
+    <div id="visor-overlay"></div>
+    <div id="canvas-container"></div>
+
+    <script>
+        // --- CONFIGURAÇÃO INICIAL DA CENA ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.00005);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        // Loader de Texturas
+        const textureLoader = new THREE.TextureLoader();
+
+        // --- ILUMINAÇÃO ---
+        const ambientLight = new THREE.AmbientLight(0x333333, 1);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        sunLight.position.set(10000, 5000, 10000);
+        scene.add(sunLight);
+
+        // --- ASTRONOMIA (TERRA, MARTE E ESPAÇO) ---
+        
+        // Espaço com Estrelas
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsCount = 8000;
+        const starPositions = new Float32Array(starsCount * 3);
+        for(let i = 0; i < starsCount * 3; i++) {
+            starPositions[i] = (Math.random() - 0.5) * 40000;
+        }
+        starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.8 });
+        const starField = new THREE.Points(starsGeometry, starsMaterial);
+        scene.add(starField);
+
+        // Terra
+        const earthRadius = 1000;
+        const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
+        const earthTex = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+        const earthSpec = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg');
+        const earthMat = new THREE.MeshPhongMaterial({
+            map: earthTex,
+            specularMap: earthSpec,
+            specular: new THREE.Color(0x333333),
+            shininess: 15
+        });
+        const earth = new THREE.Mesh(earthGeo, earthMat);
+        earth.position.set(0, -earthRadius, 0); // Foguete começa na superfície superior
+        scene.add(earth);
+
+        // Marte
+        const marsRadius = 600;
+        const marsGeo = new THREE.SphereGeometry(marsRadius, 64, 64);
+        // Textura procedural simples para Marte enquanto carrega
+        const marsMat = new THREE.MeshStandardMaterial({
+            color: 0xc1440e,
+            roughness: 0.8
+        });
+        const mars = new THREE.Mesh(marsGeo, marsMat);
+        // Carrega textura detalhada de Marte
+        textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k.jpg', (tex) => {
+            marsMat.map = tex;
+            marsMat.needsUpdate = true;
+        });
+        mars.position.set(0, 15000, -20000);
+        scene.add(mars);
+
+        // --- CABINE DO FOGUETE (VISÃO INTERNA EM 1ª PESSOA) ---
+        const cockpitGroup = new THREE.Group();
+        scene.add(cockpitGroup);
+
+        // Estrutura do Painel Frontal
+        const panelGeo = new THREE.CylinderGeometry(2.5, 2, 1.2, 8, 1, true, -Math.PI / 3, (2 * Math.PI) / 3);
+        const panelMat = new THREE.MeshStandardMaterial({
+            color: 0x111116,
+            metalness: 0.8,
+            roughness: 0.3,
+            side: THREE.DoubleSide
+        });
+        const panel = new THREE.Mesh(panelGeo, panelMat);
+        panel.position.set(0, -0.6, -1);
+        panel.rotation.y = Math.PI;
+        cockpitGroup.add(panel);
+
+        // Moldura da Janela (Cockpit Frame)
+        const frameGeo = new THREE.TorusGeometry(2.2, 0.08, 8, 6);
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x222228, metalness: 0.9, roughness: 0.2 });
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        frame.position.set(0, 0, -1.2);
+        cockpitGroup.add(frame);
+
+        // Luzes e Botões Interativos no Painel
+        const cyanGlow = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+        const redGlow = new THREE.MeshBasicMaterial({ color: 0xff0033 });
+
+        for(let i = -1; i <= 1; i += 0.4) {
+            const btnGeo = new THREE.BoxGeometry(0.15, 0.08, 0.05);
+            const btn = new THREE.Mesh(btnGeo, Math.random() > 0.3 ? cyanGlow : redGlow);
+            btn.position.set(i * 0.8, -0.4, -1.1);
+            btn.rotation.x = -0.3;
+            cockpitGroup.add(btn);
+        }
+
+        // Luz do Interior da Cabine
+        const cockpitLight = new THREE.PointLight(0x00aaff, 1.5, 3);
+        cockpitLight.position.set(0, 0.8, -0.5);
+        cockpitGroup.add(cockpitLight);
+
+        // Posição Inicial do Foguete/Câmera na Terra
+        const shipPosition = new THREE.Vector3(0, 2, 0);
+        cockpitGroup.position.copy(shipPosition);
+        camera.position.set(0, 0, 0);
+        cockpitGroup.add(camera);
+
+        // --- ESTADOS E ANIMAÇÃO DE VIAGEM ---
+        let flightState = 'GROUND'; // 'GROUND', 'LAUNCHING', 'CRUISE', 'LANDING', 'LANDED'
+        let speed = 0;
+        let altitude = 0;
+        let progress = 0;
+
+        const launchBtn = document.getElementById('launch-btn');
+        const statusTitle = document.getElementById('status-title');
+        const teleAlt = document.getElementById('tele-alt');
+        const teleSpeed = document.getElementById('tele-speed');
+
+        launchBtn.addEventListener('click', () => {
+            if(flightState === 'GROUND') {
+                flightState = 'LAUNCHING';
+                launchBtn.disabled = true;
+                launchBtn.innerText = "EM VIAGEM...";
+                statusTitle.innerText = "SISTEMA: DECOLANDO!";
+                statusTitle.style.color = "#ff3300";
+            }
+        });
+
+        // Efeito de movimento leve da cabeça do piloto ao mover o mouse
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 0.3;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 0.3;
+        });
+
+        const clock = new THREE.Clock();
+
+        // --- LOOP DE RENDERIZAÇÃO ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Rotação suave da Terra e Marte
+            earth.rotation.y += 0.0005;
+            mars.rotation.y += 0.0008;
+
+            // Suavização do movimento da câmera pelo mouse
+            camera.rotation.y += (mouseX - camera.rotation.y) * 0.05;
+            camera.rotation.x += (-mouseY - camera.rotation.x) * 0.05;
+
+            // GERENCIAMENTO DA VIAGEM
+            if (flightState === 'LAUNCHING') {
+                speed += delta * 400;
+                altitude += speed * delta * 0.1;
+
+                // Efeito de Trepidação na Decolagem (Tela Tremendo)
+                const shakeIntensity = Math.min(speed / 20000, 0.08);
+                cockpitGroup.position.x = (Math.random() - 0.5) * shakeIntensity;
+                cockpitGroup.position.z = (Math.random() - 0.5) * shakeIntensity;
+                cockpitGroup.position.y = altitude;
+
+                // Foguete subindo em direção ao espaço
+                if (altitude > 2000) {
+                    flightState = 'CRUISE';
+                    statusTitle.innerText = "SISTEMA: ORBITA ESTÁVEL - A CAMINHO DE MARTE";
+                    statusTitle.style.color = "#00ffcc";
+                }
+            } 
+            else if (flightState === 'CRUISE') {
+                // Estabiliza o tremor da nave
+                cockpitGroup.position.x += (0 - cockpitGroup.position.x) * 0.1;
+                cockpitGroup.position.z += (0 - cockpitGroup.position.z) * 0.1;
+
+                progress += delta * 0.08; // Velocidade da transição pelo espaço
+                speed = 45000 + Math.sin(time * 5) * 500;
+                altitude = 2000 + progress * 15000;
+
+                // Interpolação suave em direção a Marte
+                const startPos = new THREE.Vector3(0, 2000, 0);
+                const targetPos = new THREE.Vector3(
+                    mars.position.x,
+                    mars.position.y + marsRadius + 5,
+                    mars.position.z + 10
+                );
+
+                cockpitGroup.position.lerpVectors(startPos, targetPos, Math.min(progress, 1));
+                
+                // Rotaciona a nave para olhar para Marte conforme se aproxima
+                cockpitGroup.lookAt(mars.position);
+
+                if (progress >= 0.85) {
+                    flightState = 'LANDING';
+                    statusTitle.innerText = "SISTEMA: PROCEDIMENTO DE POUSO EM MARTE";
+                    statusTitle.style.color = "#ffcc00";
+                }
+            } 
+            else if (flightState === 'LANDING') {
+                speed = Math.max(100, speed * 0.96); // Desaceleração
+                altitude = Math.max(0, (1 - progress) * 10000);
+
+                // Pequena trepidação na reentrada atmosférica de Marte
+                const shakeIntensity = (speed / 45000) * 0.03;
+                cockpitGroup.position.x += (Math.random() - 0.5) * shakeIntensity;
+                cockpitGroup.position.y += (Math.random() - 0.5) * shakeIntensity;
+
+                if (speed < 150 && cockpitGroup.position.distanceTo(mars.position) <= marsRadius + 15) {
+                    flightState = 'LANDED';
+                    statusTitle.innerText = "SISTEMA: POUSO CONCLUÍDO EM MARTE!";
+                    statusTitle.style.color = "#00ff66";
+                    speed = 0;
+                    altitude = 0;
+                    launchBtn.innerText = "MISSÃO CUMPRIDA";
+                }
+            }
+
+            // Atualização da Telemetria no HUD
+            teleAlt.innerText = Math.floor(altitude).toLocaleString();
+            teleSpeed.innerText = Math.floor(speed).toLocaleString();
+
+            renderer.render(scene, camera);
+        }
+
+        // --- AJUSTE DE TELA ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Iniciar Simulação
+        animate();
+    </script>
+</body>
+</html>
