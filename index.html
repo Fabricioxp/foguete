@@ -13,9 +13,14 @@
             user-select: none;
         }
 
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
+        #canvas-container { width:100vw; height:100vh; height:100dvh; touch-action:none; }
+        canvas { display:block; touch-action:none; }
+        @media (max-width: 700px) {
+            #hud { top: max(10px, env(safe-area-inset-top)); left:10px; right:10px; padding:10px 12px; border-radius:12px; }
+            #hud h1 { font-size:.82rem; letter-spacing:1px; margin-bottom:5px; }
+            #hud p { font-size:.72rem; margin:2px 0; }
+            #controls-hint { display:none; }
+            #launch-btn { bottom:max(18px, env(safe-area-inset-bottom)); width:calc(100% - 40px); max-width:420px; padding:15px 12px; font-size:.92rem; letter-spacing:1px; }
         }
 
         /* HUD Superior */
@@ -108,7 +113,7 @@
         <p style="color:#e9b4b4;font-size:.72rem;margin-top:8px">MISSÃO ESPECIAL: UMA VIAGEM PARA NÓS DOIS ♥</p>
     </div>
 
-    <div id="controls-hint">Arraste com o mouse para olhar ao redor</div>
+    <div id="controls-hint">Arraste para olhar ao redor</div>
     <button id="launch-btn">INICIAR DECOLAGEM</button>
     <div id="canvas-container"></div>
 
@@ -122,7 +127,7 @@
         
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 700 ? 1.35 : 2));
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
@@ -131,7 +136,14 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableZoom = false; // Mantém a câmera fixa dentro do cockpit
         controls.enablePan = false;
-        controls.rotateSpeed = -0.4; // Inverte para parecer rotação natural da cabeça
+        controls.rotateSpeed = -0.35;
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.minPolarAngle = 0.75;
+        controls.maxPolarAngle = 2.25;
+        controls.minAzimuthAngle = -0.95;
+        controls.maxAzimuthAngle = 0.95;
+        renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
         const textureLoader = new THREE.TextureLoader();
 
@@ -459,11 +471,15 @@
             renderer.render(scene, camera);
         }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        function resizeScene() {
+            const w = window.innerWidth, h = window.innerHeight;
+            camera.aspect = w / h;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+            renderer.setSize(w, h, false);
+        }
+        window.addEventListener('resize', resizeScene);
+        window.addEventListener('orientationchange', () => setTimeout(resizeScene, 150));
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
         animate();
     </script>
