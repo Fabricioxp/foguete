@@ -4,7 +4,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-
 <title>O PRÉDIO — Capítulo 1</title>
 
 <style>
@@ -12,6 +11,7 @@
     box-sizing:border-box;
     -webkit-tap-highlight-color:transparent;
     user-select:none;
+    -webkit-user-select:none;
     touch-action:none;
 }
 
@@ -21,15 +21,21 @@ html,body{
     height:100%;
     overflow:hidden;
     background:#000;
-    font-family:Arial,sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    position:fixed;
+    inset:0;
 }
 
 #game{
     position:fixed;
     inset:0;
     width:100vw;
-    height:100vh;
-    background:#050606;
+    height:100dvh;
+    overflow:hidden;
+    background:#030506;
 }
 
 canvas{
@@ -38,158 +44,147 @@ canvas{
     height:100%;
 }
 
-/* =====================================================
-   TELA DE ROTAÇÃO
-===================================================== */
+/* TELA VERTICAL */
 
 #rotate{
     display:none;
     position:fixed;
     inset:0;
-    z-index:10000;
-    background:#050505;
-    color:white;
-    text-align:center;
-    justify-content:center;
+    z-index:9999;
+    background:#050606;
+    color:#fff;
     align-items:center;
+    justify-content:center;
     flex-direction:column;
+    text-align:center;
 }
 
 @media (orientation:portrait){
-    #rotate{
-        display:flex;
-    }
+    #rotate{display:flex}
 }
 
-#rotate .phone{
+.phone{
     font-size:65px;
     margin-bottom:20px;
-    animation:rotatePhone 2s infinite;
+    animation:rotation 2s infinite ease-in-out;
 }
 
-@keyframes rotatePhone{
+@keyframes rotation{
     50%{transform:rotate(90deg)}
 }
 
-/* =====================================================
-   MENU INICIAL
-===================================================== */
+/* MENU */
 
 #menu{
     position:fixed;
     inset:0;
-    z-index:100;
-    background:
-        radial-gradient(circle at center,rgba(45,52,55,.65),#020303 70%);
+    z-index:200;
     display:flex;
     align-items:center;
     justify-content:center;
+    background:
+        radial-gradient(circle at 50% 35%,#20282b 0%,#080a0b 35%,#000 100%);
     color:white;
 }
 
-.menuContent{
+.menuBox{
     text-align:center;
-    padding:30px;
 }
 
 .logo{
-    font-size:clamp(48px,10vw,100px);
+    font-size:clamp(42px,8vw,90px);
     font-weight:900;
     letter-spacing:12px;
-    text-shadow:
-        0 0 20px rgba(255,255,255,.15),
-        0 8px 0 #111,
-        0 20px 40px #000;
+    text-shadow:0 0 35px #000;
 }
 
-.chapterText{
-    color:#aaa;
+.subtitle{
+    color:#8c9699;
     font-size:11px;
     letter-spacing:5px;
-    margin-top:12px;
+    margin-top:14px;
 }
 
-#play{
-    margin-top:38px;
-    padding:18px 60px;
-    border:1px solid #555;
+#startButton{
+    margin-top:35px;
+    padding:18px 55px;
     color:white;
+    border:1px solid #666;
+    border-radius:4px;
     font-weight:bold;
     letter-spacing:4px;
-    background:linear-gradient(#333,#111);
-    border-radius:4px;
-    box-shadow:0 10px 35px #000;
+    background:linear-gradient(#353a3c,#111415);
+    box-shadow:0 10px 40px #000;
 }
 
-/* =====================================================
-   HUD
-===================================================== */
+#startButton:active{
+    transform:scale(.96);
+}
+
+/* HUD */
 
 #hud{
     position:fixed;
     inset:0;
-    z-index:20;
+    z-index:30;
     pointer-events:none;
 }
 
-.hudPanel{
-    background:linear-gradient(
-        90deg,
-        rgba(0,0,0,.88),
-        rgba(0,0,0,.42)
-    );
-
+.panel{
+    background:linear-gradient(90deg,rgba(0,0,0,.85),rgba(0,0,0,.35));
     border:1px solid rgba(255,255,255,.1);
-    backdrop-filter:blur(6px);
+    backdrop-filter:blur(5px);
 }
 
-#mission{
+#objective{
     position:absolute;
-    top:14px;
+    top:12px;
     left:50%;
     transform:translateX(-50%);
-    padding:10px 22px;
-    color:#ddd;
+    color:#e8e8e8;
+    padding:10px 24px;
     font-size:10px;
     letter-spacing:2px;
     text-align:center;
+    min-width:250px;
 }
 
-#topLeft{
+#location{
     position:absolute;
-    top:15px;
     left:15px;
+    top:15px;
     padding:10px 14px;
-    border-left:3px solid #7d1f1f;
+    border-left:3px solid #852525;
 }
 
-#topLeft small{
-    color:#777;
-    letter-spacing:3px;
-    font-size:8px;
-}
-
-#topLeft strong{
+#location small{
     display:block;
-    margin-top:5px;
-    font-size:15px;
-    letter-spacing:1px;
+    color:#777;
+    font-size:8px;
+    letter-spacing:3px;
 }
 
-#bars{
+#location strong{
+    display:block;
+    margin-top:4px;
+    font-size:13px;
+    letter-spacing:2px;
+}
+
+#stats{
     position:absolute;
     right:15px;
     top:15px;
-    width:180px;
+    width:160px;
 }
 
 .stat{
-    background:rgba(0,0,0,.7);
-    padding:6px 9px;
+    padding:7px 10px;
     margin-bottom:5px;
+    background:rgba(0,0,0,.72);
 }
 
-.stat label{
+.statLabel{
     font-size:8px;
     color:#aaa;
     letter-spacing:2px;
@@ -198,186 +193,156 @@ canvas{
 .bar{
     width:100%;
     height:5px;
-    background:#111;
     margin-top:4px;
+    background:#151515;
     overflow:hidden;
 }
 
 .fill{
     height:100%;
-    transition:width .2s;
+    width:100%;
 }
 
-#health{
-    background:#c52c2c;
+#healthFill{background:#c52f2f}
+#staminaFill{background:#398fd1}
+#batteryFill{background:#d4b53b}
+
+#interactionText{
+    position:absolute;
+    left:50%;
+    bottom:120px;
+    transform:translateX(-50%);
+    padding:10px 20px;
+    color:white;
+    font-size:11px;
+    text-align:center;
+    letter-spacing:1px;
+    opacity:0;
+    transition:.2s;
+    background:rgba(0,0,0,.6);
+    border-radius:4px;
 }
 
-#energy{
-    background:#2c9bd1;
-}
-
-#battery{
-    background:#e0c23d;
+#interactionText.show{
+    opacity:1;
 }
 
 #message{
     position:absolute;
-    top:43%;
+    top:45%;
     left:50%;
-    width:80%;
+    width:75%;
     transform:translate(-50%,-50%);
-    text-align:center;
     color:white;
-    font-size:clamp(14px,2vw,23px);
+    text-align:center;
     font-weight:bold;
+    font-size:clamp(13px,2vw,21px);
+    text-shadow:0 3px 15px #000;
     letter-spacing:2px;
-    text-shadow:0 3px 10px black;
     opacity:0;
-    transition:.25s;
+    transition:.3s;
 }
 
 #message.show{
     opacity:1;
 }
 
-/* =====================================================
-   CONTROLES
-===================================================== */
+/* CONTROLES */
 
 #controls{
     position:fixed;
     inset:0;
-    z-index:40;
+    z-index:50;
     pointer-events:none;
 }
 
-/* JOYSTICK */
-
 #joystickArea{
     position:absolute;
-    left:20px;
-    bottom:18px;
     width:150px;
     height:150px;
+    bottom:15px;
+    left:15px;
     pointer-events:auto;
 }
 
-#joystickBase{
+#joyBase{
     position:absolute;
     inset:10px;
     border-radius:50%;
-    background:
-        radial-gradient(
-            circle,
-            rgba(100,100,100,.18),
-            rgba(0,0,0,.75)
-        );
-
+    background:radial-gradient(circle,rgba(100,100,100,.22),rgba(0,0,0,.75));
     border:2px solid rgba(255,255,255,.12);
-    box-shadow:
-        inset 0 0 30px #000,
-        0 5px 20px #000;
 }
 
-#joystick{
+#joyStick{
     position:absolute;
     width:60px;
     height:60px;
     left:45px;
     top:45px;
     border-radius:50%;
-    background:
-        radial-gradient(
-            circle at 30% 25%,
-            #999,
-            #353535 65%,
-            #111
-        );
-
-    border:2px solid rgba(255,255,255,.25);
-    box-shadow:0 5px 20px #000;
+    background:radial-gradient(circle at 30% 25%,#888,#333 65%,#111);
+    border:2px solid rgba(255,255,255,.2);
+    box-shadow:0 6px 15px #000;
 }
 
-/* BOTÕES */
-
-#actions{
+#buttons{
     position:absolute;
     right:18px;
     bottom:18px;
     display:flex;
     align-items:flex-end;
-    gap:10px;
+    gap:8px;
     pointer-events:auto;
 }
 
-.gameButton{
+.button{
     color:white;
-    font-weight:bold;
-    font-size:9px;
     border-radius:50%;
     border:2px solid rgba(255,255,255,.18);
-
-    background:
-        radial-gradient(
-            circle at 30% 25%,
-            #606060,
-            #252525 65%,
-            #101010
-        );
-
-    box-shadow:0 6px 18px #000;
+    background:radial-gradient(circle at 30% 25%,#555,#222 70%,#101010);
+    box-shadow:0 5px 20px #000;
+    font-size:9px;
+    font-weight:bold;
 }
 
-.gameButton:active,
-.gameButton.active{
+.button:active,
+.button.active{
     transform:scale(.9);
     filter:brightness(1.5);
 }
 
 #flashButton{
-    width:58px;
-    height:58px;
-    font-size:20px;
+    width:55px;
+    height:55px;
+    font-size:19px;
 }
 
 #crouchButton{
     width:62px;
     height:62px;
-    border-color:#2778a5;
+    border-color:#2c7aa5;
 }
 
-#interactButton{
-    width:76px;
-    height:76px;
-    border-color:#c6a72d;
+#actionButton{
+    width:74px;
+    height:74px;
+    border-color:#ba9c30;
 }
 
 #runButton{
     width:78px;
     height:78px;
-    border-color:#a22d2d;
+    border-color:#9d3030;
 }
-
-/* =====================================================
-   DANO
-===================================================== */
 
 #damage{
     position:fixed;
+    z-index:45;
     inset:0;
     pointer-events:none;
-    z-index:30;
-
     opacity:0;
-
-    background:
-        radial-gradient(
-            circle,
-            transparent 35%,
-            rgba(180,0,0,.7)
-        );
-
-    transition:opacity .12s;
+    background:radial-gradient(circle,transparent 30%,rgba(170,0,0,.8));
+    transition:opacity .15s;
 }
 </style>
 
@@ -390,64 +355,50 @@ canvas{
 <div id="rotate">
     <div class="phone">📱</div>
     <h2>GIRE O CELULAR</h2>
-    <p>Este jogo foi criado para jogar na horizontal.</p>
+    <p>O jogo foi criado para a tela horizontal.</p>
 </div>
 
 <div id="menu">
-    <div class="menuContent">
+    <div class="menuBox">
         <div class="logo">O PRÉDIO</div>
-
-```
-    <div class="chapterText">
-        CAPÍTULO 1 — O DESPERTAR
+        <div class="subtitle">CAPÍTULO 1 — O DESPERTAR</div>
+        <button id="startButton">ENTRAR</button>
     </div>
-
-    <button id="play">
-        ENTRAR
-    </button>
-</div>
-```
-
 </div>
 
 <div id="hud">
 
 ```
-<div id="topLeft" class="hudPanel">
-    <small>CAPÍTULO 1</small>
-    <strong>O DESPERTAR</strong>
+<div id="location" class="panel">
+    <small>LOCAL DESCONHECIDO</small>
+    <strong>PRÉDIO ABANDONADO</strong>
 </div>
 
-<div id="mission" class="hudPanel">
-    EXPLORE O PRÉDIO E DESCUBRA UMA SAÍDA
+<div id="objective" class="panel">
+    ENCONTRE UMA FORMA DE SAIR DO PRÉDIO
 </div>
 
-<div id="bars">
+<div id="stats">
 
     <div class="stat">
-        <label>VIDA</label>
-        <div class="bar">
-            <div id="health" class="fill"></div>
-        </div>
+        <div class="statLabel">VIDA</div>
+        <div class="bar"><div id="healthFill" class="fill"></div></div>
     </div>
 
     <div class="stat">
-        <label>ENERGIA</label>
-        <div class="bar">
-            <div id="energy" class="fill"></div>
-        </div>
+        <div class="statLabel">ENERGIA</div>
+        <div class="bar"><div id="staminaFill" class="fill"></div></div>
     </div>
 
     <div class="stat">
-        <label>LANTERNA</label>
-        <div class="bar">
-            <div id="battery" class="fill"></div>
-        </div>
+        <div class="statLabel">LANTERNA</div>
+        <div class="bar"><div id="batteryFill" class="fill"></div></div>
     </div>
 
 </div>
 
 <div id="message"></div>
+<div id="interactionText"></div>
 ```
 
 </div>
@@ -456,27 +407,16 @@ canvas{
 
 ```
 <div id="joystickArea">
-    <div id="joystickBase"></div>
-    <div id="joystick"></div>
+    <div id="joyBase"></div>
+    <div id="joyStick"></div>
 </div>
 
-<div id="actions">
+<div id="buttons">
 
-    <button id="flashButton" class="gameButton">
-        🔦
-    </button>
-
-    <button id="crouchButton" class="gameButton">
-        ABAIXAR
-    </button>
-
-    <button id="interactButton" class="gameButton">
-        AÇÃO
-    </button>
-
-    <button id="runButton" class="gameButton">
-        CORRER
-    </button>
+    <button id="flashButton" class="button">🔦</button>
+    <button id="crouchButton" class="button">ABAIXAR</button>
+    <button id="actionButton" class="button">AÇÃO</button>
+    <button id="runButton" class="button">CORRER</button>
 
 </div>
 ```
@@ -490,19 +430,17 @@ canvas{
 import * as THREE from
 "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
 
-/* =========================================================
-   RENDERER
-========================================================= */
-
-const game=document.getElementById("game");
+/* =====================================================
+   CENA
+===================================================== */
 
 const scene=new THREE.Scene();
 
-scene.background=new THREE.Color(0x07090a);
-scene.fog=new THREE.Fog(0x07090a,18,65);
+scene.background=new THREE.Color(0x060809);
+scene.fog=new THREE.Fog(0x060809,20,72);
 
 const camera=new THREE.PerspectiveCamera(
-    50,
+    52,
     innerWidth/innerHeight,
     .1,
     200
@@ -520,218 +458,192 @@ renderer.setPixelRatio(
 renderer.setSize(innerWidth,innerHeight);
 
 renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=
-    THREE.PCFSoftShadowMap;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 
-game.appendChild(renderer.domElement);
+document
+.getElementById("game")
+.appendChild(renderer.domElement);
 
 const clock=new THREE.Clock();
 
-/* =========================================================
-   ILUMINAÇÃO AMBIENTE
-========================================================= */
+/* =====================================================
+   ILUMINAÇÃO
+===================================================== */
 
-const ambient=new THREE.HemisphereLight(
-    0x58646a,
-    0x020202,
-    1.25
+scene.add(
+    new THREE.HemisphereLight(
+        0x53646b,
+        0x030303,
+        1.2
+    )
 );
 
-scene.add(ambient);
-
-const directional=new THREE.DirectionalLight(
-    0x72818a,
-    .55
+const moonLight=new THREE.DirectionalLight(
+    0x7a8d94,
+    .4
 );
 
-directional.position.set(10,30,5);
-directional.castShadow=true;
+moonLight.position.set(10,25,10);
 
-scene.add(directional);
+scene.add(moonLight);
 
-/* =========================================================
+/* =====================================================
    MATERIAIS
-========================================================= */
+===================================================== */
 
-const materials={
+const mat={
 
     floor:new THREE.MeshStandardMaterial({
-        color:0x202426,
-        roughness:.92
+        color:0x1c2021,
+        roughness:.95
     }),
 
     wall:new THREE.MeshStandardMaterial({
-        color:0x3b4144,
+        color:0x3b4244,
         roughness:.88
     }),
 
     wallDark:new THREE.MeshStandardMaterial({
-        color:0x252a2c,
+        color:0x252b2d,
         roughness:.95
     }),
 
+    wood:new THREE.MeshStandardMaterial({
+        color:0x4b3425,
+        roughness:.8
+    }),
+
     metal:new THREE.MeshStandardMaterial({
-        color:0x333b3e,
-        roughness:.55,
+        color:0x384247,
+        roughness:.6,
         metalness:.35
     }),
 
-    wood:new THREE.MeshStandardMaterial({
-        color:0x553c29,
-        roughness:.78
+    door:new THREE.MeshStandardMaterial({
+        color:0x3d271b,
+        roughness:.8
     }),
 
-    oldWood:new THREE.MeshStandardMaterial({
-        color:0x3d291d,
+    concrete:new THREE.MeshStandardMaterial({
+        color:0x292d2e,
         roughness:.9
     })
 
 };
 
-/* =========================================================
-   COLISÕES
-========================================================= */
+/* =====================================================
+   SISTEMA DE COLISÃO
+===================================================== */
 
-const collisionObjects=[];
+const colliders=[];
 const wallMeshes=[];
+const interactables=[];
+const safeSpawnPoints=[];
 
-function addCollider(
-    x,z,
-    width,depth,
-    minY=0,
-    maxY=5
-){
+function addCollider(x,z,w,d,type="solid",data=null){
 
-    collisionObjects.push({
-        minX:x-width/2,
-        maxX:x+width/2,
-        minZ:z-depth/2,
-        maxZ:z+depth/2,
-        minY,
-        maxY
-    });
+    const collider={
 
+        minX:x-w/2,
+        maxX:x+w/2,
+        minZ:z-d/2,
+        maxZ:z+d/2,
+
+        x,z,w,d,
+
+        type,
+        data
+
+    };
+
+    colliders.push(collider);
+
+    return collider;
 }
 
-function createWall(
-    x,y,z,
-    width,height,depth,
-    material=materials.wall
-){
+function positionCollides(position,radius=.6){
 
-    const wall=new THREE.Mesh(
-        new THREE.BoxGeometry(
-            width,
-            height,
-            depth
-        ),
-        material
-    );
+    for(const c of colliders){
 
-    wall.position.set(
-        x,
-        y+height/2,
-        z
-    );
-
-    wall.castShadow=true;
-    wall.receiveShadow=true;
-
-    scene.add(wall);
-
-    addCollider(
-        x,
-        z,
-        width,
-        depth,
-        y,
-        y+height
-    );
-
-    wallMeshes.push(wall);
-
-    /* acabamento superior */
-
-    const edge=new THREE.Mesh(
-        new THREE.BoxGeometry(
-            width+.08,
-            .12,
-            depth+.08
-        ),
-        materials.metal
-    );
-
-    edge.position.set(
-        x,
-        y+height+.06,
-        z
-    );
-
-    scene.add(edge);
-
-    return wall;
-}
-
-function isBlocked(position,radius=.55){
-
-    for(const box of collisionObjects){
-
-        if(
-            position.y+2<box.minY ||
-            position.y>box.maxY
-        ){
+        if(c.type==="openDoor")
             continue;
-        }
 
         const closestX=Math.max(
-            box.minX,
-            Math.min(
-                position.x,
-                box.maxX
-            )
+            c.minX,
+            Math.min(position.x,c.maxX)
         );
 
         const closestZ=Math.max(
-            box.minZ,
-            Math.min(
-                position.z,
-                box.maxZ
-            )
+            c.minZ,
+            Math.min(position.z,c.maxZ)
         );
 
-        const dx=
-            position.x-closestX;
+        const dx=position.x-closestX;
+        const dz=position.z-closestZ;
 
-        const dz=
-            position.z-closestZ;
-
-        if(
-            dx*dx+dz*dz<
-            radius*radius
-        ){
+        if(dx*dx+dz*dz<radius*radius)
             return true;
-        }
     }
 
     return false;
 }
 
-/* =========================================================
-   CHÃO
-========================================================= */
+/* =====================================================
+   SPAWN SEGURO
 
-function createFloor(
-    y,
-    width=74,
-    depth=62
-){
+   O JOGO VERIFICA A ÁREA ANTES DO NASCIMENTO.
+===================================================== */
+
+function findSafeSpawn(preferred){
+
+    const checks=[
+
+        preferred,
+
+        new THREE.Vector3(-29,0,-24),
+        new THREE.Vector3(-29,0,-20),
+        new THREE.Vector3(-25,0,-24),
+        new THREE.Vector3(-24,0,-19),
+
+        new THREE.Vector3(-18,0,-26)
+
+    ];
+
+    for(const point of checks){
+
+        if(!positionCollides(point,.9))
+            return point.clone();
+    }
+
+    /* Procura uma posição automaticamente */
+
+    for(let radius=2;radius<30;radius+=1){
+
+        for(let angle=0;angle<Math.PI*2;angle+=.3){
+
+            const point=new THREE.Vector3(
+                preferred.x+Math.cos(angle)*radius,
+                0,
+                preferred.z+Math.sin(angle)*radius
+            );
+
+            if(!positionCollides(point,.9))
+                return point;
+        }
+    }
+
+    return new THREE.Vector3(-29,0,-24);
+}
+
+/* =====================================================
+   CHÃO
+===================================================== */
+
+function createFloor(y,w,d){
 
     const floor=new THREE.Mesh(
-        new THREE.PlaneGeometry(
-            width,
-            depth
-        ),
-        materials.floor
+        new THREE.PlaneGeometry(w,d),
+        mat.floor
     );
 
     floor.rotation.x=-Math.PI/2;
@@ -741,93 +653,136 @@ function createFloor(
 
     scene.add(floor);
 
-    /* linhas sutis */
-
-    const grid=new THREE.GridHelper(
-        width,
-        40,
-        0x303638,
-        0x171a1b
-    );
-
-    grid.position.y=y+.015;
-
-    grid.material.transparent=true;
-    grid.material.opacity=.14;
-
-    scene.add(grid);
+    return floor;
 }
 
-createFloor(0);
+createFloor(0,78,68);
 
-/* =========================================================
-   MAPA DO PRÉDIO
-========================================================= */
+/* =====================================================
+   CRIAÇÃO DE PAREDES
+===================================================== */
 
-/*
-    O mapa possui:
+function wall(x,z,w,d,h=5,material=mat.wall){
 
-    RECEPÇÃO
-    CORREDOR CENTRAL
-    ESCRITÓRIOS
-    BANHEIROS
-    DEPÓSITO
-    ENFERMARIA
-    SALA DE SEGURANÇA
-    SALA ELÉTRICA
-    ÁREA DE ESCADAS
-*/
+    const mesh=new THREE.Mesh(
 
-/* PAREDES EXTERNAS */
+        new THREE.BoxGeometry(w,h,d),
 
-createWall(0,0,-30,74,5,1);
-createWall(0,0,30,74,5,1);
+        material
 
-createWall(-36.5,0,0,1,5,60);
-createWall(36.5,0,0,1,5,60);
+    );
 
-/* RECEPÇÃO */
+    mesh.position.set(
+        x,
+        h/2,
+        z
+    );
 
-createWall(-18,0,-18,25,5,.7);
-createWall(-8,0,-10,.7,5,16);
+    mesh.castShadow=true;
+    mesh.receiveShadow=true;
 
-/* CORREDOR DIREITO */
+    scene.add(mesh);
 
-createWall(9,0,-21,.7,5,18);
-createWall(21,0,-13,25,5,.7);
+    addCollider(x,z,w,d);
 
-/* SALAS DO LADO DIREITO */
+    wallMeshes.push(mesh);
 
-createWall(20,0,-5,.7,5,15);
-createWall(27,0,2,18,5,.7);
+    /* acabamento */
 
-/* CORREDOR INFERIOR */
+    const top=new THREE.Mesh(
 
-createWall(10,0,15,32,5,.7);
-createWall(-12,0,8,28,5,.7);
+        new THREE.BoxGeometry(
+            w+.08,
+            .12,
+            d+.08
+        ),
 
-/* SALAS ESQUERDAS */
+        mat.metal
 
-createWall(-26,0,17,.7,5,25);
-createWall(-16,0,22,20,5,.7);
+    );
 
-/* DIVISÕES */
+    top.position.set(
+        x,
+        h+.06,
+        z
+    );
 
-createWall(-18,0,-5,12,5,.6);
-createWall(-22,0,7,10,5,.6);
-createWall(18,0,23,18,5,.6);
-createWall(4,0,22,.6,5,15);
+    scene.add(top);
 
-/* =========================================================
-   DECORAÇÃO
-========================================================= */
+    return mesh;
+}
 
-function createBox(
-    x,y,z,
-    w,h,d,
-    material,
-    collision=true
-){
+/* =====================================================
+   ESTRUTURA DO PRÉDIO
+
+   O MAPA FOI ORGANIZADO PARA EVITAR
+   CORREDORES BLOQUEADOS E NASCIMENTOS
+   DENTRO DE OBJETOS.
+===================================================== */
+
+/* EXTERIOR */
+
+wall(0,-32,78,1);
+wall(0,32,78,1);
+
+wall(-38.5,0,1,64);
+wall(38.5,0,1,64);
+
+/* ÁREA DE ENTRADA E RECEPÇÃO */
+
+wall(-20,-17,22,.7);
+wall(-10,-23,.7,12);
+
+/* CORREDOR CENTRAL */
+
+wall(5,-24,.7,15);
+wall(5,-5,.7,20);
+
+wall(5,14,.7,15);
+
+/* LADO DIREITO SUPERIOR */
+
+wall(21,-18,33,.7);
+wall(37,-10,.7,15);
+
+wall(23,-2,28,.7);
+
+/* SALAS DIREITAS */
+
+wall(14,6,.7,15);
+wall(24,13,20,.7);
+
+wall(34,18,.7,20);
+
+/* PARTE INFERIOR */
+
+wall(20,26,28,.7);
+wall(-5,18,21,.7);
+
+wall(-15,25,22,.7);
+
+/* LADO ESQUERDO */
+
+wall(-30,10,.7,28);
+wall(-20,18,20,.7);
+
+wall(-20,4,15,.7);
+
+/* DIVISÕES DE SALAS */
+
+wall(-19,-7,18,.6);
+wall(-26,3,10,.6);
+
+wall(21,-10,.6,14);
+wall(29,4,15,.6);
+
+wall(-6,10,.6,16);
+
+/* =====================================================
+   DECORAÇÃO COM COLISÃO
+===================================================== */
+
+function box(x,y,z,w,h,d,material,collision=true){
 
     const mesh=new THREE.Mesh(
         new THREE.BoxGeometry(w,h,d),
@@ -841,97 +796,85 @@ function createBox(
 
     scene.add(mesh);
 
-    if(collision){
-
-        addCollider(
-            x,z,w,d,
-            y-h/2,
-            y+h/2
-        );
-    }
+    if(collision)
+        addCollider(x,z,w,d);
 
     return mesh;
 }
 
-/* RECEPÇÃO */
+/* =====================================================
+   RECEPÇÃO
 
-createBox(
-    -26,1,-23,
-    10,2,2,
-    materials.oldWood
+   OS MÓVEIS FICAM AFASTADOS DO SPAWN.
+===================================================== */
+
+box(
+    -29,1,-25,
+    7,2,1.8,
+    mat.wood
 );
 
-createBox(
-    -27,2.4,-23,
-    2,.6,.5,
-    materials.metal,
-    false
+box(
+    -34,1,-19,
+    2.5,2,1.2,
+    mat.metal
 );
 
 /* CADEIRAS */
 
 function chair(x,z){
 
-    createBox(
-        x,.8,z,
-        1.1,.25,1.1,
-        materials.metal
+    box(
+        x,.75,z,
+        1,.25,1,
+        mat.metal
     );
 
-    createBox(
-        x,1.5,z+.4,
-        1.1,1.3,.2,
-        materials.metal
+    box(
+        x,1.35,z+.35,
+        1,1.1,.15,
+        mat.metal
     );
-
 }
 
-chair(-20,-25);
-chair(-16,-25);
-chair(-13,-25);
+chair(-20,-26);
+chair(-17,-26);
+chair(-14,-26);
 
-/* MESAS */
+/* =====================================================
+   MESAS
+
+   POSSÍVEIS ESCONDERIJOS.
+===================================================== */
 
 const hidingPlaces=[];
 
-function createTable(x,z){
+function table(x,z){
 
     const group=new THREE.Group();
 
     const top=new THREE.Mesh(
-        new THREE.BoxGeometry(
-            3.5,
-            .25,
-            2
-        ),
-        materials.wood
+        new THREE.BoxGeometry(3.6,.25,2.1),
+        mat.wood
     );
 
-    top.position.y=1.7;
+    top.position.y=1.65;
 
     group.add(top);
 
-    for(const a of [-1.45,1.45]){
+    for(const lx of [-1.5,1.5]){
 
-        for(const b of [-.75,.75]){
+        for(const lz of [-.75,.75]){
 
             const leg=new THREE.Mesh(
-                new THREE.BoxGeometry(
-                    .18,
-                    1.7,
-                    .18
-                ),
-                materials.metal
+                new THREE.BoxGeometry(.18,1.65,.18),
+                mat.metal
             );
 
-            leg.position.set(
-                a,.85,b
-            );
+            leg.position.set(lx,.82,lz);
 
             group.add(leg);
-
         }
-
     }
 
     group.position.set(x,0,z);
@@ -949,246 +892,432 @@ function createTable(x,z){
 
     scene.add(group);
 
-    addCollider(
-        x,z,
-        3.5,2,
-        0,1.9
-    );
+    addCollider(x,z,3.6,2.1);
 
     hidingPlaces.push({
         type:"table",
         position:new THREE.Vector3(x,0,z),
-        radius:2.3
+        radius:2.5
     });
-
 }
 
-createTable(-20,-13);
-createTable(14,-22);
-createTable(27,10);
-createTable(-18,14);
+table(-21,-12);
+table(15,-24);
+table(29,10);
+table(-20,15);
 
-/* ARMÁRIOS */
+/* =====================================================
+   ARMÁRIOS
+===================================================== */
 
-function createLocker(x,z){
+function locker(x,z){
 
     const group=new THREE.Group();
 
     const body=new THREE.Mesh(
-        new THREE.BoxGeometry(
-            2,
-            4.4,
-            1.5
-        ),
-        materials.metal
+        new THREE.BoxGeometry(2,4.4,1.5),
+        mat.metal
     );
 
     body.position.y=2.2;
 
     group.add(body);
 
-    /* duas portas */
+    for(const side of [-.48,.48]){
 
-    const leftDoor=new THREE.Mesh(
-        new THREE.BoxGeometry(
-            .9,
-            4,
-            .06
-        ),
-        new THREE.MeshStandardMaterial({
-            color:0x485257,
-            roughness:.75
-        })
-    );
+        const door=new THREE.Mesh(
 
-    leftDoor.position.set(
-        -.48,
-        2.2,
-        -.78
-    );
+            new THREE.BoxGeometry(
+                .88,
+                4,
+                .08
+            ),
 
-    const rightDoor=leftDoor.clone();
+            new THREE.MeshStandardMaterial({
+                color:0x455158,
+                roughness:.8
+            })
 
-    rightDoor.position.x=.48;
+        );
 
-    group.add(leftDoor);
-    group.add(rightDoor);
+        door.position.set(
+            side,
+            2.2,
+            -.77
+        );
+
+        group.add(door);
+    }
 
     group.position.set(x,0,z);
 
-    group.traverse(obj=>{
-
-        if(obj.isMesh)
-            obj.castShadow=true;
-
-    });
-
     scene.add(group);
 
-    addCollider(
-        x,z,
-        2,1.5,
-        0,4.4
-    );
+    addCollider(x,z,2,1.5);
 
     hidingPlaces.push({
         type:"locker",
         position:new THREE.Vector3(x,0,z),
-        radius:2.5
+        radius:2.8
     });
-
 }
 
-createLocker(-31,-8);
-createLocker(29,-4);
-createLocker(-22,20);
-createLocker(28,20);
+locker(-34,-5);
+locker(30,-7);
+locker(-25,22);
+locker(30,21);
 
-/* CAIXAS E DETALHES */
+/* =====================================================
+   PORTAS FUNCIONAIS
+===================================================== */
 
-for(let i=0;i<12;i++){
+const doors=[];
 
-    const x=
-        i%2===0
-        ?25+Math.random()*5
-        :-30+Math.random()*4;
+function createDoor(
+    x,z,
+    width=3,
+    locked=false,
+    requires=null
+){
 
-    const z=
-        -18+Math.random()*38;
+    const pivot=new THREE.Group();
 
-    const size=
-        .8+Math.random()*1.3;
+    const doorMesh=new THREE.Mesh(
 
-    createBox(
-        x,
-        size/2,
-        z,
-        size,
-        size,
-        size,
-        materials.oldWood
+        new THREE.BoxGeometry(
+            width,
+            4.3,
+            .22
+        ),
+
+        mat.door
+
     );
 
+    doorMesh.position.set(
+        width/2,
+        2.15,
+        0
+    );
+
+    doorMesh.castShadow=true;
+
+    pivot.add(doorMesh);
+
+    pivot.position.set(
+        x,
+        0,
+        z
+    );
+
+    scene.add(pivot);
+
+    const collider=
+        addCollider(
+            x+width/2,
+            z,
+            width,
+            .4,
+            "door"
+        );
+
+    const door={
+
+        pivot,
+        mesh:doorMesh,
+        collider,
+
+        open:false,
+        locked,
+
+        requires,
+
+        x,z,
+
+        interactionRadius:3
+
+    };
+
+    doors.push(door);
+
+    interactables.push({
+        type:"door",
+        object:door,
+        position:new THREE.Vector3(
+            x+width/2,
+            0,
+            z
+        )
+    });
+
+    return door;
 }
 
-/* =========================================================
-   PERSONAGEM
-========================================================= */
+/* PORTAS IMPORTANTES */
+
+createDoor(-10,-17,3,false);
+createDoor(5,-15,3,false);
+
+createDoor(
+    21,-10,
+    3,
+    true,
+    "securityKey"
+);
+
+createDoor(
+    24,13,
+    3,
+    true,
+    "powerOn"
+);
+
+/* =====================================================
+   ITENS E PUZZLES
+===================================================== */
+
+const inventory={
+
+    securityKey:false,
+    fuse:false,
+
+    powerOn:false
+
+};
+
+const items=[];
+
+function createKey(x,z){
+
+    const mesh=new THREE.Mesh(
+
+        new THREE.BoxGeometry(
+            .8,.18,.35
+        ),
+
+        new THREE.MeshStandardMaterial({
+            color:0xd7bb3b,
+            metalness:.7,
+            roughness:.3,
+            emissive:0x4d3d00
+        })
+
+    );
+
+    mesh.position.set(x,.8,z);
+
+    scene.add(mesh);
+
+    const item={
+        type:"securityKey",
+        mesh,
+        position:new THREE.Vector3(x,0,z),
+        active:true
+    };
+
+    items.push(item);
+
+    interactables.push({
+        type:"item",
+        object:item,
+        position:item.position
+    });
+}
+
+function createFuse(x,z){
+
+    const mesh=new THREE.Mesh(
+
+        new THREE.CylinderGeometry(
+            .18,
+            .18,
+            .8,
+            10
+        ),
+
+        new THREE.MeshStandardMaterial({
+            color:0xbebebe,
+            metalness:.8
+        })
+
+    );
+
+    mesh.rotation.z=Math.PI/2;
+
+    mesh.position.set(x,.8,z);
+
+    scene.add(mesh);
+
+    const item={
+        type:"fuse",
+        mesh,
+        position:new THREE.Vector3(x,0,z),
+        active:true
+    };
+
+    items.push(item);
+
+    interactables.push({
+        type:"item",
+        object:item,
+        position:item.position
+    });
+}
+
+/* ITENS POSICIONADOS EM LOCAIS LIVRES */
+
+createKey(-21,20);
+createFuse(29,-12);
+
+/* =====================================================
+   QUADRO ELÉTRICO
+===================================================== */
+
+const powerBox=new THREE.Mesh(
+
+    new THREE.BoxGeometry(
+        1.5,2,.4
+    ),
+
+    new THREE.MeshStandardMaterial({
+        color:0x242a2d,
+        metalness:.5,
+        roughness:.7
+    })
+
+);
+
+powerBox.position.set(
+    30,
+    1,
+    15
+);
+
+scene.add(powerBox);
+
+interactables.push({
+    type:"powerBox",
+    object:powerBox,
+    position:new THREE.Vector3(
+        30,0,15
+    )
+});
+
+/* =====================================================
+   PERSONAGEM 3D
+===================================================== */
 
 const player=new THREE.Group();
 
 scene.add(player);
 
-/* pernas */
-
-function playerLimb(
-    color,
-    radius,
-    length
-){
+function capsule(color,radius,length){
 
     return new THREE.Mesh(
+
         new THREE.CapsuleGeometry(
             radius,
             length,
-            5,
-            10
+            6,
+            12
         ),
+
         new THREE.MeshStandardMaterial({
             color,
-            roughness:.7
+            roughness:.75
         })
-    );
 
+    );
 }
 
-const leftLeg=playerLimb(
-    0x1d407c,
-    .27,
-    .8
+/* pernas */
+
+const leftLeg=capsule(
+    0x173e77,
+    .28,
+    .75
 );
 
-const rightLeg=playerLimb(
-    0x1d407c,
-    .27,
-    .8
+const rightLeg=capsule(
+    0x173e77,
+    .28,
+    .75
 );
 
-leftLeg.position.set(-.34,.65,0);
-rightLeg.position.set(.34,.65,0);
+leftLeg.position.set(-.32,.65,0);
+rightLeg.position.set(.32,.65,0);
 
 player.add(leftLeg,rightLeg);
 
 /* corpo */
 
-const body=new THREE.Mesh(
-    new THREE.CapsuleGeometry(
-        .67,
-        1.1,
-        8,
-        16
-    ),
-    new THREE.MeshStandardMaterial({
-        color:0x9f2626,
-        roughness:.7
-    })
+const playerBody=capsule(
+    0x982a2b,
+    .66,
+    1.1
 );
 
-body.position.y=2;
+playerBody.position.y=2;
 
-player.add(body);
+player.add(playerBody);
 
 /* cabeça */
 
 const head=new THREE.Mesh(
+
     new THREE.SphereGeometry(
         .7,
         20,
         20
     ),
+
     new THREE.MeshStandardMaterial({
-        color:0xe0a37c,
+        color:0xe1a57d,
         roughness:.8
     })
+
 );
 
 head.position.y=3.55;
 
 player.add(head);
 
-/* CABELO */
+/* cabelo */
 
 const hair=new THREE.Mesh(
+
     new THREE.SphereGeometry(
-        .74,
+        .73,
         20,
         16,
         0,
         Math.PI*2,
         0,
-        Math.PI*.55
+        Math.PI*.58
     ),
+
     new THREE.MeshStandardMaterial({
-        color:0x26140d,
+        color:0x26160e,
         roughness:1
     })
+
 );
 
-hair.position.y=3.8;
+hair.position.y=3.82;
 
 player.add(hair);
 
 /* braços */
 
-const leftArm=playerLimb(
-    0x9f2626,
-    .22,
+const leftArm=capsule(
+    0x982a2b,
+    .21,
     .8
 );
 
-const rightArm=playerLimb(
-    0x9f2626,
-    .22,
+const rightArm=capsule(
+    0x982a2b,
+    .21,
     .8
 );
 
@@ -1199,115 +1328,112 @@ player.add(leftArm,rightArm);
 
 /* sapatos */
 
-const shoeMaterial=
-    new THREE.MeshStandardMaterial({
-        color:0x24150f
+boxGeometryShoes();
+
+/* Função separada para não criar collider nos sapatos */
+
+function boxGeometryShoes(){
+
+    const shoeMat=new THREE.MeshStandardMaterial({
+        color:0x21150f
     });
 
-const leftShoe=new THREE.Mesh(
-    new THREE.BoxGeometry(
-        .6,.35,.9
+    for(const x of [-.32,.32]){
+
+        const shoe=new THREE.Mesh(
+
+            new THREE.BoxGeometry(
+                .6,.3,.9
+            ),
+
+            shoeMat
+
+        );
+
+        shoe.position.set(
+            x,.13,.12
+        );
+
+        player.add(shoe);
+    }
+}
+
+/* =====================================================
+   SPAWN SEGURO
+===================================================== */
+
+const spawn=findSafeSpawn(
+    new THREE.Vector3(
+        -24,
+        0,
+        -22
+    )
+);
+
+player.position.copy(spawn);
+
+/* =====================================================
+   LANTERNA
+===================================================== */
+
+const flashlightModel=new THREE.Group();
+
+const flashBody=new THREE.Mesh(
+
+    new THREE.CylinderGeometry(
+        .13,.18,.85,12
     ),
-    shoeMaterial
+
+    new THREE.MeshStandardMaterial({
+        color:0x1e2224,
+        metalness:.7,
+        roughness:.4
+    })
+
 );
 
-const rightShoe=leftShoe.clone();
+flashBody.rotation.z=Math.PI/2;
 
-leftShoe.position.set(
-    -.34,.12,.12
+flashlightModel.add(flashBody);
+
+const flashHead=new THREE.Mesh(
+
+    new THREE.CylinderGeometry(
+        .21,.17,.24,12
+    ),
+
+    new THREE.MeshStandardMaterial({
+        color:0x858585,
+        metalness:.8
+    })
+
 );
 
-rightShoe.position.set(
-    .34,.12,.12
-);
+flashHead.rotation.z=Math.PI/2;
+flashHead.position.x=.52;
 
-player.add(leftShoe,rightShoe);
-
-/* posição inicial */
-
-player.position.set(
-    -27,
-    0,
-    -22
-);
-
-/* =========================================================
-   LANTERNA — COMEÇA COM O JOGADOR
-========================================================= */
-
-const flashlightModel=
-    new THREE.Group();
-
-const flashlightBody=
-    new THREE.Mesh(
-        new THREE.CylinderGeometry(
-            .13,
-            .18,
-            .85,
-            12
-        ),
-        new THREE.MeshStandardMaterial({
-            color:0x202426,
-            roughness:.4,
-            metalness:.7
-        })
-    );
-
-flashlightBody.rotation.z=
-    Math.PI/2;
-
-flashlightModel.add(
-    flashlightBody
-);
-
-const flashlightHead=
-    new THREE.Mesh(
-        new THREE.CylinderGeometry(
-            .21,
-            .17,
-            .25,
-            12
-        ),
-        new THREE.MeshStandardMaterial({
-            color:0x777777,
-            metalness:.8
-        })
-    );
-
-flashlightHead.rotation.z=
-    Math.PI/2;
-
-flashlightHead.position.x=.5;
-
-flashlightModel.add(
-    flashlightHead
-);
+flashlightModel.add(flashHead);
 
 flashlightModel.position.set(
-    1,
-    1.9,
-    -.25
+    .9,
+    2,
+    -.35
 );
 
 player.add(flashlightModel);
 
-/* LUZ PRINCIPAL */
+/* Luz forte */
 
 const flashlight=new THREE.SpotLight(
-    0xfff2c2,
-    11,
-    38,
-    Math.PI/4.3,
-    .4,
+    0xfff0c0,
+    14,
+    42,
+    Math.PI/4,
+    .38,
     1
 );
 
 flashlight.castShadow=true;
-
-flashlight.shadow.mapSize.set(
-    1024,
-    1024
-);
 
 scene.add(flashlight);
 
@@ -1316,25 +1442,23 @@ const flashlightTarget=
 
 scene.add(flashlightTarget);
 
-flashlight.target=
-    flashlightTarget;
+flashlight.target=flashlightTarget;
 
-/* LUZ AO REDOR DO PERSONAGEM */
+/* Luz próxima */
 
-const playerLight=
-    new THREE.PointLight(
-        0xffdca0,
-        1.8,
-        9
-    );
+const playerLight=new THREE.PointLight(
+    0xffd69a,
+    1.8,
+    10
+);
 
 scene.add(playerLight);
 
-/* =========================================================
+/* =====================================================
    ESTADO DO JOGADOR
-========================================================= */
+===================================================== */
 
-const playerState={
+const state={
 
     health:100,
     stamina:100,
@@ -1342,21 +1466,18 @@ const playerState={
 
     crouching:false,
     hidden:false,
-    hidingPlace:null,
 
     flashlight:true,
 
     velocity:new THREE.Vector3(),
 
-    walkTime:0,
+    walkCycle:0,
 
-    noise:0
+    noise:0,
+
+    currentHide:null
 
 };
-
-/* =========================================================
-   CONTROLE
-========================================================= */
 
 const input={
     x:0,
@@ -1364,111 +1485,92 @@ const input={
     running:false
 };
 
-/* =========================================================
-   MOVIMENTAÇÃO
-========================================================= */
+/* =====================================================
+   MOVIMENTO COM COLISÃO
+===================================================== */
 
 function movePlayer(delta){
 
-    if(playerState.hidden)
+    if(state.hidden)
         return;
 
-    const direction=
-        new THREE.Vector3(
-            input.x,
-            0,
-            input.z
-        );
+    const direction=new THREE.Vector3(
+        input.x,
+        0,
+        input.z
+    );
 
     if(direction.length()>1)
         direction.normalize();
 
-    const moving=
-        direction.length()>.08;
-
-    let speed=3.6;
+    const moving=direction.length()>.05;
 
     const running=
+
         input.running &&
-        playerState.stamina>1 &&
-        !playerState.crouching;
+        state.stamina>0 &&
+        !state.crouching;
+
+    let speed=3.4;
 
     if(running)
-        speed=6.3;
+        speed=6;
 
-    if(playerState.crouching)
-        speed=1.8;
+    if(state.crouching)
+        speed=1.75;
 
     const desired=
-        direction.multiplyScalar(speed);
+        direction.clone()
+        .multiplyScalar(speed);
 
-    playerState.velocity.x+=
-        (
-            desired.x-
-            playerState.velocity.x
-        )*
-        Math.min(delta*10,1);
+    state.velocity.x+=
+        (desired.x-state.velocity.x)*
+        Math.min(delta*12,1);
 
-    playerState.velocity.z+=
-        (
-            desired.z-
-            playerState.velocity.z
-        )*
-        Math.min(delta*10,1);
+    state.velocity.z+=
+        (desired.z-state.velocity.z)*
+        Math.min(delta*12,1);
 
     if(!moving){
 
-        playerState.velocity.x*=.72;
-        playerState.velocity.z*=.72;
+        state.velocity.x*=.65;
+        state.velocity.z*=.65;
 
     }
 
-    /* COLISÃO NO EIXO X */
+    /* Movimento separado evita atravessar quinas */
 
-    let test=
-        player.position.clone();
+    const nextX=player.position.clone();
 
-    test.x+=
-        playerState.velocity.x*
-        delta;
+    nextX.x+=
+        state.velocity.x*delta;
 
-    if(!isBlocked(test,.6)){
+    if(!positionCollides(nextX,.62))
+        player.position.x=nextX.x;
+    else
+        state.velocity.x=0;
 
-        player.position.x=test.x;
+    const nextZ=player.position.clone();
 
-    }else{
+    nextZ.z+=
+        state.velocity.z*delta;
 
-        playerState.velocity.x=0;
+    if(!positionCollides(nextZ,.62))
+        player.position.z=nextZ.z;
+    else
+        state.velocity.z=0;
 
-    }
-
-    /* COLISÃO NO EIXO Z */
-
-    test.copy(player.position);
-
-    test.z+=
-        playerState.velocity.z*
-        delta;
-
-    if(!isBlocked(test,.6)){
-
-        player.position.z=test.z;
-
-    }else{
-
-        playerState.velocity.z=0;
-
-    }
+    /* rotação */
 
     if(moving){
 
-        const angle=Math.atan2(
+        const targetAngle=Math.atan2(
             direction.x,
             direction.z
         );
 
         let difference=
-            angle-player.rotation.y;
+            targetAngle-player.rotation.y;
 
         difference=Math.atan2(
             Math.sin(difference),
@@ -1479,31 +1581,19 @@ function movePlayer(delta){
             difference*
             Math.min(delta*12,1);
 
-        playerState.walkTime+=
+        state.walkCycle+=
             delta*
-            (
-                running
-                ?14
-                :playerState.crouching
-                ?5
-                :8
-            );
+            (running?14:state.crouching?5:8);
 
         const swing=
-            Math.sin(
-                playerState.walkTime
-            )*
-            (
-                running
-                ?.75
-                :.42
-            );
+            Math.sin(state.walkCycle)*
+            (running?.75:.4);
 
         leftLeg.rotation.x=swing;
         rightLeg.rotation.x=-swing;
 
-        leftArm.rotation.x=-swing*.8;
-        rightArm.rotation.x=swing*.8;
+        leftArm.rotation.x=-swing*.75;
+        rightArm.rotation.x=swing*.75;
 
     }else{
 
@@ -1515,71 +1605,49 @@ function movePlayer(delta){
 
     }
 
-    /* AGACHAMENTO */
+    /* abaixar */
 
-    const desiredScale=
-        playerState.crouching
-        ?.68
-        :1;
+    const targetScale=
+        state.crouching?.68:1;
 
     player.scale.y+=
-        (
-            desiredScale-
-            player.scale.y
-        )*
+        (targetScale-player.scale.y)*
         Math.min(delta*12,1);
 
-    /* ENERGIA */
+    /* stamina */
 
-    if(running){
+    if(running)
+        state.stamina-=26*delta;
+    else
+        state.stamina+=17*delta;
 
-        playerState.stamina-=
-            25*delta;
-
-    }else{
-
-        playerState.stamina+=
-            16*delta;
-
-    }
-
-    playerState.stamina=
+    state.stamina=
         THREE.MathUtils.clamp(
-            playerState.stamina,
+            state.stamina,
             0,
             100
         );
 
-    /* BARULHO */
+    /* barulho */
 
-    if(!moving){
-
-        playerState.noise=0;
-
-    }else if(playerState.crouching){
-
-        playerState.noise=.15;
-
-    }else if(running){
-
-        playerState.noise=1;
-
-    }else{
-
-        playerState.noise=.45;
-
-    }
-
+    if(!moving)
+        state.noise=0;
+    else if(state.crouching)
+        state.noise=.12;
+    else if(running)
+        state.noise=1;
+    else
+        state.noise=.4;
 }
 
-/* =========================================================
-   SISTEMA DE ESCONDER
-========================================================= */
+/* =====================================================
+   ESCONDERIJOS
+===================================================== */
 
-function findHidingPlace(){
+function nearestHide(){
 
     let result=null;
-    let shortest=Infinity;
+    let closest=Infinity;
 
     hidingPlaces.forEach(place=>{
 
@@ -1590,11 +1658,11 @@ function findHidingPlace(){
 
         if(
             distance<place.radius &&
-            distance<shortest
+            distance<closest
         ){
 
             result=place;
-            shortest=distance;
+            closest=distance;
 
         }
 
@@ -1605,13 +1673,11 @@ function findHidingPlace(){
 
 function toggleHide(){
 
-    if(playerState.hidden){
+    if(state.hidden){
 
-        playerState.hidden=false;
-
+        state.hidden=false;
         player.visible=true;
-
-        playerState.hidingPlace=null;
+        state.currentHide=null;
 
         showMessage(
             "VOCÊ SAIU DO ESCONDERIJO."
@@ -1620,82 +1686,64 @@ function toggleHide(){
         return;
     }
 
-    const place=
-        findHidingPlace();
+    const place=nearestHide();
 
     if(!place){
 
         showMessage(
-            "NÃO HÁ UM ESCONDERIJO PRÓXIMO."
+            "NÃO EXISTE UM ESCONDERIJO PRÓXIMO."
         );
 
         return;
     }
 
-    playerState.hidden=true;
-
-    playerState.hidingPlace=place;
+    state.hidden=true;
+    state.currentHide=place;
 
     player.visible=false;
 
     showMessage(
 
         place.type==="locker"
+
         ?"VOCÊ ENTROU NO ARMÁRIO."
+
         :"VOCÊ SE ESCONDEU SOB A MESA."
 
     );
-
 }
 
-/* =========================================================
+/* =====================================================
    MONSTRO
-========================================================= */
+===================================================== */
 
-const monster=
-    new THREE.Group();
+const monster=new THREE.Group();
 
 scene.add(monster);
 
-/* corpo */
+const monsterBody=capsule(
+    0x101010,
+    .8,
+    2.3
+);
 
-const monsterBody=
-    new THREE.Mesh(
-
-        new THREE.CapsuleGeometry(
-            .8,
-            2.5,
-            7,
-            14
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:0x111213,
-            roughness:1
-        })
-
-    );
-
-monsterBody.position.y=2.1;
+monsterBody.position.y=2.2;
 
 monster.add(monsterBody);
 
-/* cabeça */
+const monsterHead=new THREE.Mesh(
 
-const monsterHead=
-    new THREE.Mesh(
+    new THREE.SphereGeometry(
+        .85,
+        18,
+        18
+    ),
 
-        new THREE.SphereGeometry(
-            .85,
-            18,
-            18
-        ),
+    new THREE.MeshStandardMaterial({
+        color:0x080808
+    })
 
-        new THREE.MeshStandardMaterial({
-            color:0x080808
-        })
-
-    );
+);
 
 monsterHead.position.y=4.15;
 
@@ -1703,204 +1751,108 @@ monster.add(monsterHead);
 
 /* olhos */
 
-function eye(x){
+for(const x of [-.28,.28]){
 
-    const mesh=
-        new THREE.Mesh(
+    const eye=new THREE.Mesh(
 
-            new THREE.SphereGeometry(
-                .11,
-                10,
-                10
-            ),
+        new THREE.SphereGeometry(
+            .1,
+            10,
+            10
+        ),
 
-            new THREE.MeshBasicMaterial({
-                color:0xff4d4d
-            })
+        new THREE.MeshBasicMaterial({
+            color:0xff3333
+        })
 
-        );
+    );
 
-    mesh.position.set(
+    eye.position.set(
         x,
         4.2,
-        -.8
+        -.78
     );
 
-    monster.add(mesh);
-
+    monster.add(eye);
 }
 
-eye(-.28);
-eye(.28);
-
-/* braços longos */
-
-const monsterArmMaterial=
-    new THREE.MeshStandardMaterial({
-        color:0x101010
-    });
-
-for(const side of [-1,1]){
-
-    const arm=
-        new THREE.Mesh(
-
-            new THREE.CapsuleGeometry(
-                .25,
-                1.8,
-                5,
-                8
-            ),
-
-            monsterArmMaterial
-
-        );
-
-    arm.position.set(
-        side*1,
-        2.3,
-        0
-    );
-
-    monster.add(arm);
-
-}
-
-/* pernas */
-
-for(const side of [-1,1]){
-
-    const leg=
-        new THREE.Mesh(
-
-            new THREE.CapsuleGeometry(
-                .3,
-                1.1,
-                5,
-                8
-            ),
-
-            monsterArmMaterial
-
-        );
-
-    leg.position.set(
-        side*.38,
-        .6,
-        0
-    );
-
-    monster.add(leg);
-
-}
+/* posição */
 
 monster.position.set(
     28,
     0,
-    18
+    19
 );
-
-monster.visible=true;
-
-/* =========================================================
-   IA DO MONSTRO
-========================================================= */
 
 const monsterState={
 
-    state:"PATROL",
+    mode:"patrol",
 
-    lastPosition:
-        new THREE.Vector3(),
+    target:new THREE.Vector3(),
 
     timer:0,
 
-    attackCooldown:0,
+    patrolIndex:0,
 
-    viewDistance:20,
+    attackTime:0,
 
-    patrolPoints:[
+    patrol:[
 
-        new THREE.Vector3(
-            28,0,18
-        ),
+        new THREE.Vector3(28,0,19),
+        new THREE.Vector3(14,0,8),
+        new THREE.Vector3(28,0,-8),
+        new THREE.Vector3(14,0,-15)
 
-        new THREE.Vector3(
-            14,0,4
-        ),
-
-        new THREE.Vector3(
-            28,0,-8
-        ),
-
-        new THREE.Vector3(
-            14,0,-20
-        )
-
-    ],
-
-    patrolIndex:0
+    ]
 
 };
 
-/* =========================================================
-   VISÃO — PAREDES BLOQUEIAM
-========================================================= */
+/* =====================================================
+   VISÃO DO MONSTRO
 
-const raycaster=
-    new THREE.Raycaster();
+   RAYCAST IMPEDE QUE ELE ENXERGUE
+   ATRAVÉS DAS PAREDES.
+===================================================== */
 
-function monsterCanSeePlayer(){
+const raycaster=new THREE.Raycaster();
 
-    if(playerState.hidden)
+function monsterCanSee(){
+
+    if(state.hidden)
         return false;
 
-    const from=
+    const origin=
         monster.position.clone();
 
-    from.y=2.8;
+    origin.y=3;
 
-    const to=
+    const target=
         player.position.clone();
 
-    to.y=2;
+    target.y=2;
 
     const direction=
-        to.clone().sub(from);
+        target.clone().sub(origin);
 
-    const distance=
-        direction.length();
+    const distance=direction.length();
 
-    if(
-        distance>
-        monsterState.viewDistance
-    ){
+    if(distance>20)
         return false;
-    }
 
     direction.normalize();
 
     const forward=
-        new THREE.Vector3(
-            0,0,-1
-        )
-        .applyQuaternion(
-            monster.quaternion
-        )
+        new THREE.Vector3(0,0,-1)
+        .applyQuaternion(monster.quaternion)
         .normalize();
 
-    const angle=
-        forward.angleTo(direction);
-
-    /* campo de visão */
-
-    if(angle>Math.PI*.38)
+    if(
+        forward.angleTo(direction)>
+        Math.PI*.42
+    )
         return false;
 
-    raycaster.set(
-        from,
-        direction
-    );
+    raycaster.set(origin,direction);
 
     const hits=
         raycaster.intersectObjects(
@@ -1908,49 +1860,27 @@ function monsterCanSeePlayer(){
             false
         );
 
-    /*
-    Se uma parede estiver entre
-    o monstro e o jogador,
-    ele não enxerga.
-    */
-
     if(
-        hits.length>0 &&
+        hits.length &&
         hits[0].distance<distance
-    ){
+    )
         return false;
-    }
 
     return true;
 }
 
-/* =========================================================
-   MOVIMENTAÇÃO DO MONSTRO
-========================================================= */
-
-function moveMonster(
-    target,
-    speed,
-    delta
-){
+function moveMonster(target,speed,delta){
 
     const direction=
         new THREE.Vector3(
 
-            target.x-
-            monster.position.x,
-
+            target.x-monster.position.x,
             0,
-
-            target.z-
-            monster.position.z
+            target.z-monster.position.z
 
         );
 
-    const distance=
-        direction.length();
-
-    if(distance<.5)
+    if(direction.length()<.5)
         return true;
 
     direction.normalize();
@@ -1960,180 +1890,109 @@ function moveMonster(
         direction.z
     );
 
-    let difference=
+    let diff=
         angle-monster.rotation.y;
 
-    difference=Math.atan2(
-        Math.sin(difference),
-        Math.cos(difference)
+    diff=Math.atan2(
+        Math.sin(diff),
+        Math.cos(diff)
     );
 
     monster.rotation.y+=
-        difference*
+        diff*
         Math.min(delta*6,1);
 
-    const next=
-        monster.position.clone();
+    const nextX=monster.position.clone();
 
-    next.x+=
-        direction.x*
-        speed*
-        delta;
+    nextX.x+=direction.x*speed*delta;
 
-    if(!isBlocked(next,.7)){
+    if(!positionCollides(nextX,.7))
+        monster.position.x=nextX.x;
 
-        monster.position.x=
-            next.x;
+    const nextZ=monster.position.clone();
 
-    }
+    nextZ.z+=direction.z*speed*delta;
 
-    next.copy(
-        monster.position
-    );
-
-    next.z+=
-        direction.z*
-        speed*
-        delta;
-
-    if(!isBlocked(next,.7)){
-
-        monster.position.z=
-            next.z;
-
-    }
+    if(!positionCollides(nextZ,.7))
+        monster.position.z=nextZ.z;
 
     return false;
 }
 
-function updateMonster(
-    delta,
-    time
-){
+function updateMonster(delta,time){
 
-    const seesPlayer=
-        monsterCanSeePlayer();
+    const sees=monsterCanSee();
 
     const distance=
         monster.position.distanceTo(
             player.position
         );
 
-    /* VIU O JOGADOR */
+    if(sees){
 
-    if(seesPlayer){
+        monsterState.mode="chase";
 
-        monsterState.state=
-            "CHASE";
-
-        monsterState.lastPosition.copy(
+        monsterState.target.copy(
             player.position
         );
 
-        monsterState.timer=7;
+        monsterState.timer=6;
 
     }
 
-    /*
-    OUVIU O JOGADOR CORRENDO
-    */
-
     if(
-
-        playerState.noise>.8 &&
-
-        distance<17 &&
-
-        !playerState.hidden &&
-
-        !seesPlayer
-
+        state.noise>.8 &&
+        distance<18 &&
+        !state.hidden &&
+        !sees
     ){
 
-        monsterState.state=
-            "INVESTIGATE";
+        monsterState.mode="investigate";
 
-        monsterState.lastPosition.copy(
+        monsterState.target.copy(
             player.position
         );
-
     }
 
-    /* PATRULHA */
-
-    if(
-        monsterState.state==="PATROL"
-    ){
+    if(monsterState.mode==="patrol"){
 
         const target=
-            monsterState.patrolPoints[
+            monsterState.patrol[
                 monsterState.patrolIndex
             ];
 
+        if(moveMonster(target,2,delta)){
+
+            monsterState.patrolIndex=
+                (monsterState.patrolIndex+1)%
+                monsterState.patrol.length;
+        }
+    }
+
+    if(monsterState.mode==="investigate"){
+
         if(
             moveMonster(
-                target,
-                2.1,
+                monsterState.target,
+                3,
                 delta
             )
         ){
 
-            monsterState.patrolIndex=
-
-                (
-                    monsterState.patrolIndex+1
-                )%
-
-                monsterState.patrolPoints.length;
-
+            monsterState.mode="search";
+            monsterState.timer=5;
         }
-
     }
 
-    /* INVESTIGAR */
+    if(monsterState.mode==="chase"){
 
-    if(
-        monsterState.state===
-        "INVESTIGATE"
-    ){
+        if(sees){
 
-        const reached=
-
-            moveMonster(
-
-                monsterState.lastPosition,
-
-                3.2,
-
-                delta
-
-            );
-
-        if(reached){
-
-            monsterState.state=
-                "SEARCH";
-
-            monsterState.timer=6;
-
-        }
-
-    }
-
-    /* PERSEGUIÇÃO */
-
-    if(
-        monsterState.state===
-        "CHASE"
-    ){
-
-        if(seesPlayer){
-
-            monsterState.lastPosition.copy(
+            monsterState.target.copy(
                 player.position
             );
 
-            monsterState.timer=6;
+            monsterState.timer=5;
 
         }else{
 
@@ -2142,125 +2001,76 @@ function updateMonster(
         }
 
         moveMonster(
-
-            monsterState.lastPosition,
-
-            5.1,
-
+            monsterState.target,
+            5,
             delta
-
         );
 
-        if(
-            monsterState.timer<=0
-        ){
+        if(monsterState.timer<=0){
 
-            monsterState.state=
-                "SEARCH";
-
+            monsterState.mode="search";
             monsterState.timer=5;
 
         }
-
     }
 
-    /* PROCURA */
-
-    if(
-        monsterState.state===
-        "SEARCH"
-    ){
+    if(monsterState.mode==="search"){
 
         monsterState.timer-=delta;
 
         const point=
-            monsterState.lastPosition.clone();
+            monsterState.target.clone();
 
-        point.x+=
-            Math.sin(time*1.5)*3;
-
-        point.z+=
-            Math.cos(time*1.2)*3;
+        point.x+=Math.sin(time*1.5)*3;
+        point.z+=Math.cos(time*1.2)*3;
 
         moveMonster(
             point,
-            2.6,
+            2.4,
             delta
         );
 
-        if(
-            monsterState.timer<=0
-        ){
-
-            monsterState.state=
-                "PATROL";
-
-        }
-
+        if(monsterState.timer<=0)
+            monsterState.mode="patrol";
     }
-
-    /*
-    ATAQUE
-    */
 
     if(
-
-        distance<1.8 &&
-
-        !playerState.hidden
-
+        distance<1.7 &&
+        !state.hidden
     ){
 
-        attackPlayer();
+        attack();
 
     }
-
 }
 
-/* =========================================================
-   ATAQUE
-========================================================= */
+function attack(){
 
-function attackPlayer(){
+    const now=performance.now();
 
-    const now=
-        performance.now();
-
-    if(
-        now-
-        monsterState.attackCooldown
-        <1200
-    ){
+    if(now-monsterState.attackTime<1100)
         return;
-    }
 
-    monsterState.attackCooldown=
-        now;
+    monsterState.attackTime=now;
 
-    playerState.health-=18;
+    state.health-=18;
 
-    playerState.health=
-        Math.max(
-            0,
-            playerState.health
-        );
+    state.health=Math.max(
+        0,
+        state.health
+    );
 
     const damage=
-        document.getElementById(
-            "damage"
-        );
+        document.getElementById("damage");
 
-    damage.style.opacity=.85;
+    damage.style.opacity=.8;
 
-    setTimeout(()=>{
+    setTimeout(
+        ()=>damage.style.opacity=0,
+        180
+    );
 
-        damage.style.opacity=0;
-
-    },150);
-
-    if(
-        playerState.health<=0
-    ){
+    if(state.health<=0){
 
         showMessage(
             "A CRIATURA ENCONTROU VOCÊ."
@@ -2268,67 +2078,54 @@ function attackPlayer(){
 
         setTimeout(
             ()=>location.reload(),
-            2500
+            2200
         );
-
     }
-
 }
 
-/* =========================================================
+/* =====================================================
    LANTERNA
-========================================================= */
+===================================================== */
 
-function updateFlashlight(
-    delta
-){
+function updateFlashlight(delta){
 
-    if(playerState.flashlight){
+    if(state.flashlight){
 
-        playerState.battery-=
-            .22*delta;
+        state.battery-=.18*delta;
 
-        if(
-            playerState.battery<=0
-        ){
+        if(state.battery<=0){
 
-            playerState.battery=0;
-
-            playerState.flashlight=false;
+            state.battery=0;
+            state.flashlight=false;
 
             showMessage(
-                "A LANTERNA FICOU SEM BATERIA."
+                "A BATERIA DA LANTERNA ACABOU."
             );
-
         }
-
     }
-
-    /*
-    Direção do personagem
-    */
 
     const forward=
         new THREE.Vector3(
             0,
             0,
             1
-        ).applyQuaternion(
+        )
+        .applyQuaternion(
             player.quaternion
         );
 
-    const position=
+    const lightPosition=
         player.position.clone();
 
-    position.y+=2.3;
+    lightPosition.y=2.5;
 
-    position.add(
+    lightPosition.add(
         forward.clone()
         .multiplyScalar(.8)
     );
 
     flashlight.position.copy(
-        position
+        lightPosition
     );
 
     const target=
@@ -2341,140 +2138,233 @@ function updateFlashlight(
         .multiplyScalar(18)
     );
 
-    flashlightTarget.position.copy(
-        target
-    );
+    flashlightTarget.position.copy(target);
 
     flashlight.intensity=
-        playerState.flashlight
-        ?11
-        :0;
+        state.flashlight?14:0;
 
     playerLight.position.copy(
         player.position
     );
 
-    playerLight.position.y+=2;
+    playerLight.position.y=2;
 
     playerLight.intensity=
-        playerState.flashlight
-        ?1.8
-        :.15;
-
+        state.flashlight?1.8:.1;
 }
 
-/* =========================================================
+/* =====================================================
+   INTERAÇÃO
+===================================================== */
+
+function getNearestInteraction(){
+
+    let result=null;
+    let distanceMin=3;
+
+    interactables.forEach(object=>{
+
+        if(
+            object.type==="item" &&
+            !object.object.active
+        )
+            return;
+
+        const distance=
+            player.position.distanceTo(
+                object.position
+            );
+
+        if(distance<distanceMin){
+
+            distanceMin=distance;
+            result=object;
+
+        }
+
+    });
+
+    return result;
+}
+
+function interact(){
+
+    if(state.hidden){
+
+        toggleHide();
+        return;
+    }
+
+    const hide=nearestHide();
+
+    if(hide){
+
+        toggleHide();
+        return;
+    }
+
+    const target=
+        getNearestInteraction();
+
+    if(!target){
+
+        showMessage(
+            "NÃO HÁ NADA PARA INTERAGIR."
+        );
+
+        return;
+    }
+
+    if(target.type==="item"){
+
+        const item=target.object;
+
+        if(item.type==="securityKey"){
+
+            inventory.securityKey=true;
+
+            showMessage(
+                "VOCÊ ENCONTROU A CHAVE DA SALA DE SEGURANÇA."
+            );
+        }
+
+        if(item.type==="fuse"){
+
+            inventory.fuse=true;
+
+            showMessage(
+                "VOCÊ ENCONTROU UM FUSÍVEL."
+            );
+        }
+
+        item.active=false;
+
+        scene.remove(item.mesh);
+
+        return;
+    }
+
+    if(target.type==="powerBox"){
+
+        if(!inventory.fuse){
+
+            showMessage(
+                "ESTÁ FALTANDO UM FUSÍVEL."
+            );
+
+            return;
+        }
+
+        inventory.powerOn=true;
+
+        document
+        .getElementById("objective")
+        .textContent=
+            "A ENERGIA FOI RESTAURADA. ENCONTRE A PRÓXIMA SAÍDA.";
+
+        showMessage(
+            "A ENERGIA DO PRÉDIO FOI RESTAURADA."
+        );
+
+        return;
+    }
+
+    if(target.type==="door"){
+
+        const door=target.object;
+
+        if(
+            door.locked &&
+            door.requires==="securityKey" &&
+            !inventory.securityKey
+        ){
+
+            showMessage(
+                "A PORTA ESTÁ TRANCADA. PRECISO DE UMA CHAVE."
+            );
+
+            return;
+        }
+
+        if(
+            door.locked &&
+            door.requires==="powerOn" &&
+            !inventory.powerOn
+        ){
+
+            showMessage(
+                "A PORTA PRECISA DE ENERGIA."
+            );
+
+            return;
+        }
+
+        door.locked=false;
+
+        door.open=!door.open;
+
+        door.collider.type=
+            door.open
+            ?"openDoor"
+            :"door";
+    }
+}
+
+/* =====================================================
+   ANIMAÇÃO DAS PORTAS
+===================================================== */
+
+function updateDoors(delta){
+
+    doors.forEach(door=>{
+
+        const targetRotation=
+            door.open
+            ?-Math.PI/2
+            :0;
+
+        door.pivot.rotation.y+=
+            (
+                targetRotation-
+                door.pivot.rotation.y
+            )*
+            Math.min(delta*6,1);
+    });
+}
+
+/* =====================================================
    CÂMERA
-========================================================= */
+===================================================== */
 
 function updateCamera(delta){
 
-    /*
-    Câmera superior, mas inclinada.
-    Isso mantém a dinâmica 2D
-    com personagens e cenário 3D.
-    */
-
-    const targetPosition=
+    const desired=
         new THREE.Vector3(
 
             player.position.x,
 
-            player.position.y+21,
+            20,
 
             player.position.z+14
 
         );
 
     camera.position.lerp(
-
-        targetPosition,
-
-        Math.min(
-            delta*4,
-            1
-        )
-
+        desired,
+        Math.min(delta*4,1)
     );
 
-    const lookAt=
+    const look=
         player.position.clone();
 
-    lookAt.y=
-        player.position.y+1;
+    look.y=1;
 
-    camera.lookAt(
-        lookAt
-    );
-
+    camera.lookAt(look);
 }
 
-/* =========================================================
-   INTERAÇÃO
-========================================================= */
-
-function interact(){
-
-    if(playerState.hidden){
-
-        toggleHide();
-
-        return;
-    }
-
-    const place=
-        findHidingPlace();
-
-    if(place){
-
-        toggleHide();
-
-        return;
-    }
-
-    showMessage(
-        "NÃO HÁ NADA PARA FAZER AQUI."
-    );
-
-}
-
-/* =========================================================
-   MENSAGENS
-========================================================= */
-
-const messageElement=
-    document.getElementById(
-        "message"
-    );
-
-let messageTimeout;
-
-function showMessage(text){
-
-    clearTimeout(
-        messageTimeout
-    );
-
-    messageElement.textContent=
-        text;
-
-    messageElement.classList.add(
-        "show"
-    );
-
-    messageTimeout=setTimeout(()=>{
-
-        messageElement.classList.remove(
-            "show"
-        );
-
-    },2800);
-
-}
-
-/* =========================================================
+/* =====================================================
    JOYSTICK
-========================================================= */
+===================================================== */
 
 const joystickArea=
     document.getElementById(
@@ -2483,104 +2373,75 @@ const joystickArea=
 
 const joystick=
     document.getElementById(
-        "joystick"
+        "joyStick"
     );
 
-let joystickPointer=null;
+let activePointer=null;
 
-function updateJoystick(
-    clientX,
-    clientY
-){
+function updateJoystick(x,y){
 
     const rect=
         joystickArea.getBoundingClientRect();
 
-    let x=
-        clientX-
-        rect.left-
-        75;
-
-    let y=
-        clientY-
-        rect.top-
-        75;
+    let dx=x-rect.left-75;
+    let dy=y-rect.top-75;
 
     const distance=
-        Math.hypot(x,y);
+        Math.hypot(dx,dy);
 
     const max=40;
 
     if(distance>max){
 
-        x=x/distance*max;
-        y=y/distance*max;
-
+        dx=dx/distance*max;
+        dy=dy/distance*max;
     }
 
-    input.x=x/max;
-
-    input.z=y/max;
+    input.x=dx/max;
+    input.z=dy/max;
 
     joystick.style.transform=
-        `translate(${x}px,${y}px)`;
-
+        `translate(${dx}px,${dy}px)`;
 }
 
 function resetJoystick(){
 
-    joystickPointer=null;
+    activePointer=null;
 
     input.x=0;
     input.z=0;
 
     joystick.style.transform=
         "translate(0,0)";
-
 }
 
 joystickArea.addEventListener(
-
     "pointerdown",
+    e=>{
 
-    event=>{
-
-        joystickPointer=
-            event.pointerId;
+        activePointer=e.pointerId;
 
         joystickArea.setPointerCapture(
-            event.pointerId
+            e.pointerId
         );
 
         updateJoystick(
-            event.clientX,
-            event.clientY
+            e.clientX,
+            e.clientY
         );
-
     }
-
 );
 
 joystickArea.addEventListener(
-
     "pointermove",
+    e=>{
 
-    event=>{
-
-        if(
-            event.pointerId===
-            joystickPointer
-        ){
-
+        if(e.pointerId===activePointer)
             updateJoystick(
-                event.clientX,
-                event.clientY
+                e.clientX,
+                e.clientY
             );
-
-        }
-
     }
-
 );
 
 joystickArea.addEventListener(
@@ -2593,9 +2454,9 @@ joystickArea.addEventListener(
     resetJoystick
 );
 
-/* =========================================================
+/* =====================================================
    BOTÕES
-========================================================= */
+===================================================== */
 
 const runButton=
     document.getElementById(
@@ -2611,7 +2472,6 @@ runButton.addEventListener(
         runButton.classList.add(
             "active"
         );
-
     }
 );
 
@@ -2622,7 +2482,6 @@ function stopRunning(){
     runButton.classList.remove(
         "active"
     );
-
 }
 
 runButton.addEventListener(
@@ -2636,111 +2495,153 @@ runButton.addEventListener(
 );
 
 document
-.getElementById(
-    "crouchButton"
-)
+.getElementById("crouchButton")
 .addEventListener(
     "click",
     ()=>{
 
-        if(playerState.hidden)
+        if(state.hidden)
             return;
 
-        playerState.crouching=
-
-            !playerState.crouching;
+        state.crouching=
+            !state.crouching;
 
         document
-        .getElementById(
-            "crouchButton"
-        )
+        .getElementById("crouchButton")
         .classList.toggle(
-
             "active",
-
-            playerState.crouching
-
+            state.crouching
         );
-
     }
 );
 
 document
-.getElementById(
-    "interactButton"
-)
+.getElementById("actionButton")
 .addEventListener(
     "click",
     interact
 );
 
 document
-.getElementById(
-    "flashButton"
-)
+.getElementById("flashButton")
 .addEventListener(
     "click",
     ()=>{
 
-        if(
-            playerState.battery<=0
-        ){
+        if(state.battery<=0)
             return;
-        }
 
-        playerState.flashlight=
-
-            !playerState.flashlight;
+        state.flashlight=
+            !state.flashlight;
 
         document
-        .getElementById(
-            "flashButton"
-        )
+        .getElementById("flashButton")
         .classList.toggle(
-
             "active",
-
-            playerState.flashlight
-
+            state.flashlight
         );
-
     }
 );
 
-/* =========================================================
+/* =====================================================
    HUD
-========================================================= */
+===================================================== */
 
 function updateHUD(){
 
     document
-    .getElementById(
-        "health"
-    )
+    .getElementById("healthFill")
     .style.width=
-        playerState.health+"%";
+        state.health+"%";
 
     document
-    .getElementById(
-        "energy"
-    )
+    .getElementById("staminaFill")
     .style.width=
-        playerState.stamina+"%";
+        state.stamina+"%";
 
     document
-    .getElementById(
-        "battery"
-    )
+    .getElementById("batteryFill")
     .style.width=
-        playerState.battery+"%";
+        state.battery+"%";
 
+    const interaction=
+        getNearestInteraction();
+
+    const hide=
+        !state.hidden
+        ?nearestHide()
+        :null;
+
+    const text=
+        document.getElementById(
+            "interactionText"
+        );
+
+    if(state.hidden){
+
+        text.textContent=
+            "PRESSIONE AÇÃO PARA SAIR";
+
+        text.classList.add("show");
+
+    }else if(hide){
+
+        text.textContent=
+            "PRESSIONE AÇÃO PARA SE ESCONDER";
+
+        text.classList.add("show");
+
+    }else if(interaction){
+
+        if(interaction.type==="item")
+            text.textContent=
+                "PRESSIONE AÇÃO PARA PEGAR";
+
+        if(interaction.type==="door")
+            text.textContent=
+                "PRESSIONE AÇÃO PARA USAR A PORTA";
+
+        if(interaction.type==="powerBox")
+            text.textContent=
+                "PRESSIONE AÇÃO PARA USAR O QUADRO";
+
+        text.classList.add("show");
+
+    }else{
+
+        text.classList.remove("show");
+
+    }
 }
 
-/* =========================================================
-   TELA CHEIA
-========================================================= */
+/* =====================================================
+   MENSAGENS
+===================================================== */
 
-async function fullscreen(){
+let messageTimer;
+
+function showMessage(text){
+
+    clearTimeout(messageTimer);
+
+    const message=
+        document.getElementById("message");
+
+    message.textContent=text;
+
+    message.classList.add("show");
+
+    messageTimer=setTimeout(
+        ()=>message.classList.remove("show"),
+        3000
+    );
+}
+
+/* =====================================================
+   TELA CHEIA
+===================================================== */
+
+async function requestFullscreen(){
 
     try{
 
@@ -2752,53 +2653,49 @@ async function fullscreen(){
             await document
             .documentElement
             .requestFullscreen();
-
         }
 
     }catch(error){}
 
     window.scrollTo(0,1);
-
 }
 
-/* =========================================================
+/* =====================================================
    INÍCIO
-========================================================= */
+===================================================== */
 
-let gameRunning=false;
+let playing=false;
 
 document
-.getElementById("play")
+.getElementById("startButton")
 .addEventListener(
     "click",
     async()=>{
 
-        await fullscreen();
+        await requestFullscreen();
 
         document
         .getElementById("menu")
         .style.display="none";
 
-        gameRunning=true;
+        playing=true;
 
         showMessage(
-            "VOCÊ ACORDOU EM UM PRÉDIO DESCONHECIDO. SUA LANTERNA AINDA FUNCIONA."
+            "VOCÊ ACORDOU. SUA LANTERNA É A ÚNICA COISA QUE POSSUI."
         );
-
     }
 );
 
-/* =========================================================
+/* =====================================================
    RESIZE
-========================================================= */
+===================================================== */
 
 addEventListener(
     "resize",
     ()=>{
 
         camera.aspect=
-            innerWidth/
-            innerHeight;
+            innerWidth/innerHeight;
 
         camera.updateProjectionMatrix();
 
@@ -2806,19 +2703,16 @@ addEventListener(
             innerWidth,
             innerHeight
         );
-
     }
 );
 
-/* =========================================================
-   LOOP
-========================================================= */
+/* =====================================================
+   LOOP PRINCIPAL
+===================================================== */
 
 function animate(){
 
-    requestAnimationFrame(
-        animate
-    );
+    requestAnimationFrame(animate);
 
     const delta=
         Math.min(
@@ -2829,7 +2723,7 @@ function animate(){
     const time=
         clock.elapsedTime;
 
-    if(gameRunning){
+    if(playing){
 
         movePlayer(delta);
 
@@ -2838,29 +2732,25 @@ function animate(){
             time
         );
 
-        updateFlashlight(
-            delta
-        );
+        updateFlashlight(delta);
 
-        updateCamera(
-            delta
-        );
+        updateDoors(delta);
+
+        updateCamera(delta);
 
         updateHUD();
-
     }
 
     renderer.render(
         scene,
         camera
     );
-
 }
 
 camera.position.set(
     player.position.x,
     20,
-    player.position.z+13
+    player.position.z+14
 );
 
 camera.lookAt(
