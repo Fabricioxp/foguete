@@ -3,70 +3,70 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>O HOSPITAL — CAPÍTULO 1 (EDIÇÃO DEFINITIVA)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>O HOSPITAL — CAPÍTULO 1 (REFORMULADO)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030504;font-family:'Rajdhani',sans-serif;color:#e2e8e4}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020403;font-family:'Rajdhani',sans-serif;color:#e2e8e4}
 canvas{position:fixed;inset:0;width:100%!important;height:100%!important;z-index:1}
 
-/* Scanline and CRT screen effect */
-#crt-overlay{position:fixed;inset:0;z-index:5;pointer-events:none;background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03));background-size:100% 3px, 6px 100%;opacity:0.75}
-
-#rotate{display:none;position:fixed;inset:0;z-index:100;background:#030504;align-items:center;justify-content:center;text-align:center;padding:25px}
+#rotate{display:none;position:fixed;inset:0;z-index:100;background:#020403;align-items:center;justify-content:center;text-align:center;padding:25px}
 @media(orientation:portrait){#rotate{display:flex}}
 
-#menu,#story,#puzzle,#death,#ending,#pauseModal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(3,5,4,0.88);backdrop-filter:blur(8px)}
-.card{width:min(90vw,580px);padding:32px;border:1px solid #3c4c43;background:rgba(10,15,12,0.96);box-shadow:0 25px 80px rgba(0,0,0,0.95), inset 0 0 15px rgba(45,80,60,0.15);text-align:center;border-radius:4px;position:relative;overflow:hidden}
-.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#4f6b5b,transparent)}
-h1{font-family:'Share Tech Mono',monospace;letter-spacing:6px;margin:0 0 10px;font-size:clamp(26px,5.5vw,44px);color:#d1e0d7;text-shadow:0 0 12px rgba(100,200,140,0.2)}
-h2{font-family:'Share Tech Mono',monospace;letter-spacing:3px;margin:0 0 12px;color:#a3c2b0}
-p{font-size:15px;line-height:1.65;color:#abb8b0;margin-bottom:20px}
+#menu,#story,#puzzle,#death,#ending{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(2,4,3,0.92);backdrop-filter:blur(10px)}
+.card{width:min(92vw,600px);padding:32px;border:1px solid #2e4237;background:rgba(8,14,11,0.96);box-shadow:0 25px 80px rgba(0,0,0,0.95), inset 0 0 20px rgba(45,80,60,0.12);text-align:center;border-radius:6px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#3e7054,transparent)}
+h1{font-family:'Share Tech Mono',monospace;letter-spacing:6px;margin:0 0 10px;font-size:clamp(24px,5vw,42px);color:#d1e0d7;text-shadow:0 0 16px rgba(100,200,140,0.25)}
+h2{font-family:'Share Tech Mono',monospace;letter-spacing:3px;margin:0 0 12px;color:#8cbfa2}
+p{font-size:15px;line-height:1.65;color:#a3b5aa;margin-bottom:20px}
 
-button{border:1px solid #4a5d51;background:linear-gradient(180deg,#1c2821,#0e1612);color:#e2ece5;padding:14px 26px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;cursor:pointer;transition:all .18s ease;box-shadow:0 6px 20px rgba(0,0,0,0.6);border-radius:3px}
-button:hover{border-color:#748e7d;background:linear-gradient(180deg,#27382f,#141e19);color:#fff;box-shadow:0 0 12px rgba(90,140,110,0.3)}
-button:active{transform:scale(0.96);filter:brightness(1.2)}
+button{border:1px solid #3d5446;background:linear-gradient(180deg,#19261f,#0c1410);color:#e2ece5;padding:14px 28px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;cursor:pointer;transition:all .18s ease;box-shadow:0 6px 20px rgba(0,0,0,0.6);border-radius:4px}
+button:hover{border-color:#658c74;background:linear-gradient(180deg,#22362b,#121d17);color:#fff;box-shadow:0 0 14px rgba(80,150,110,0.35)}
+button:active{transform:scale(0.96)}
 
-#damage{position:fixed;inset:0;z-index:35;pointer-events:none;background:radial-gradient(circle,transparent 30%,rgba(180,10,10,0.65));opacity:0;transition:opacity .12s}
-#heartbeat-border{position:fixed;inset:0;z-index:34;pointer-events:none;box-shadow:inset 0 0 50px rgba(200,0,0,0);transition:box-shadow .2s}
+#damage{position:fixed;inset:0;z-index:35;pointer-events:none;background:radial-gradient(circle,transparent 30%,rgba(200,15,15,0.7));opacity:0;transition:opacity .12s}
+#heartbeat-border{position:fixed;inset:0;z-index:34;pointer-events:none;box-shadow:inset 0 0 60px rgba(220,0,0,0);transition:box-shadow .2s}
 
-#crosshair{position:fixed;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);z-index:12;pointer-events:none;opacity:.6}
-#crosshair:before,#crosshair:after{content:"";position:absolute;background:#9ebdaa}
-#crosshair:before{width:2px;height:16px;left:7px;top:0}
-#crosshair:after{height:2px;width:16px;left:0;top:7px}
+#crosshair{position:fixed;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);z-index:12;pointer-events:none;opacity:.75}
+#crosshair:before,#crosshair:after{content:"";position:absolute;background:#a2c4b0}
+#crosshair:before{width:2px;height:12px;left:5px;top:0}
+#crosshair:after{height:2px;width:12px;left:0;top:5px}
 
-#hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) 16px 16px}
-#top{display:flex;justify-content:space-between;gap:12px}
-.panel{background:rgba(6,10,8,0.85);border:1px solid rgba(70,95,80,0.35);padding:10px 14px;font-size:12px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;backdrop-filter:blur(6px);border-radius:3px;box-shadow:0 4px 15px rgba(0,0,0,0.5)}
-#objective{position:absolute;top:65px;left:50%;transform:translateX(-50%);max-width:60%;text-align:center;color:#b2cbbe;border-color:rgba(100,140,120,0.4)}
-.bar{width:130px;height:6px;background:#151d18;margin-top:5px;border:1px solid rgba(255,255,255,0.1);border-radius:2px;overflow:hidden}
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:calc(12px + env(safe-area-inset-top)) 16px 16px}
+#top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.panel{background:rgba(4,8,6,0.88);border:1px solid rgba(60,90,72,0.4);padding:10px 14px;font-size:12px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;backdrop-filter:blur(6px);border-radius:4px;box-shadow:0 4px 18px rgba(0,0,0,0.6)}
+#objective{position:absolute;top:70px;left:50%;transform:translateX(-50%);max-width:70%;text-align:center;color:#b2cbbe;border-color:rgba(80,130,102,0.4);font-size:13px}
+.bar{width:130px;height:7px;background:#101713;margin-top:5px;border:1px solid rgba(255,255,255,0.12);border-radius:3px;overflow:hidden}
 .fill{height:100%;transition:width .15s ease}
-#hpfill{background:linear-gradient(90deg,#8b2a2a,#d94545)}
-#stfill{background:linear-gradient(90deg,#2a7150,#45be87)}
+#hpfill{background:linear-gradient(90deg,#992222,#e64a4a)}
+#stfill{background:linear-gradient(90deg,#216b49,#3ebd82)}
 
-#prompt{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);display:none;padding:10px 22px;background:rgba(6,10,8,0.92);border:1px solid #638270;border-radius:20px;font-size:13px;font-family:'Share Tech Mono',monospace;color:#d7e8de;box-shadow:0 0 15px rgba(0,0,0,0.8), 0 0 8px rgba(80,140,110,0.3)}
+#crouch-badge{display:none;position:absolute;bottom:185px;left:50%;transform:translateX(-50%);background:rgba(20,40,30,0.9);border:1px solid #4a8264;color:#7ee0a9;padding:4px 12px;font-size:11px;font-family:'Share Tech Mono',monospace;border-radius:12px;letter-spacing:1px}
+#crouch-badge.active{display:block}
 
-#inventory-bar{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
-.inv-slot{width:38px;height:38px;background:rgba(8,12,10,0.8);border:1px solid rgba(80,100,90,0.4);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative}
-.inv-slot.active{border-color:#52a379;box-shadow:0 0 8px rgba(80,180,120,0.4)}
-.inv-count{position:absolute;bottom:1px;right:3px;font-size:10px;font-family:'Share Tech Mono',monospace;color:#a8c4b4}
+#prompt{position:absolute;bottom:135px;left:50%;transform:translateX(-50%);display:none;padding:10px 22px;background:rgba(4,8,6,0.95);border:1px solid #4d7a60;border-radius:20px;font-size:13px;font-family:'Share Tech Mono',monospace;color:#d7e8de;box-shadow:0 0 20px rgba(0,0,0,0.9), 0 0 10px rgba(70,130,95,0.3)}
+
+#inventory-bar{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:auto}
+.inv-slot{width:42px;height:42px;background:rgba(6,10,8,0.85);border:1px solid rgba(70,100,80,0.4);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;cursor:pointer}
+.inv-slot.active{border-color:#48b87c;box-shadow:0 0 10px rgba(72,184,124,0.4)}
+.inv-count{position:absolute;bottom:1px;right:4px;font-size:10px;font-family:'Share Tech Mono',monospace;color:#a8c4b4}
 
 #controls{position:fixed;inset:0;z-index:20;pointer-events:none}
-#joy{position:absolute;left:24px;bottom:24px;width:130px;height:130px;border:2px solid rgba(120,150,135,0.3);border-radius:50%;pointer-events:auto;background:rgba(12,18,15,0.35);backdrop-filter:blur(2px)}
-#stick{position:absolute;width:56px;height:56px;left:35px;top:35px;border-radius:50%;background:rgba(140,175,155,0.35);border:1px solid rgba(255,255,255,0.4)}
-#look{position:absolute;right:0;top:0;width:52%;height:100%;pointer-events:auto}
+#joy{position:absolute;left:24px;bottom:24px;width:130px;height:130px;border:2px solid rgba(100,140,120,0.3);border-radius:50%;pointer-events:auto;background:rgba(8,14,11,0.4);backdrop-filter:blur(3px)}
+#stick{position:absolute;width:56px;height:56px;left:35px;top:35px;border-radius:50%;background:rgba(120,170,140,0.4);border:1px solid rgba(255,255,255,0.5)}
+#look{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto}
 #buttons{position:absolute;right:20px;bottom:22px;display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
-.ctrl{width:64px;height:64px;border-radius:50%;padding:4px;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;background:rgba(12,18,15,0.85);border:1px solid #4a5e52;color:#d5e3da;box-shadow:0 6px 20px rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ctrl:active{background:#23352a;border-color:#7da18c}
-.ctrl.main{width:80px;height:80px;border-color:#6c8c79;background:rgba(18,28,23,0.92);font-size:11px}
-#flash.active{border-color:#a2c9b2;box-shadow:0 0 15px rgba(140,210,170,0.4)}
+.ctrl{width:64px;height:64px;border-radius:50%;padding:4px;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;background:rgba(8,14,11,0.88);border:1px solid #3d5446;color:#d5e3da;box-shadow:0 6px 20px rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ctrl:active,.ctrl.active{background:#20382b;border-color:#659e7b}
+.ctrl.main{width:80px;height:80px;border-color:#507860;background:rgba(14,24,19,0.94);font-size:12px}
+#flash.active{border-color:#7ee0a9;box-shadow:0 0 15px rgba(126,224,169,0.4)}
 
-#toast{position:fixed;z-index:40;top:18%;left:50%;transform:translateX(-50%);opacity:0;transition:all .25s ease;background:rgba(6,10,8,0.95);border:1px solid #526f5e;padding:12px 22px;font-size:13px;font-family:'Share Tech Mono',monospace;max-width:80%;text-align:center;border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,0.8);color:#d0e3d8}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(5px)}
+#toast{position:fixed;z-index:40;top:18%;left:50%;transform:translateX(-50%);opacity:0;transition:all .25s ease;background:rgba(4,8,6,0.96);border:1px solid #4a755d;padding:12px 24px;font-size:13px;font-family:'Share Tech Mono',monospace;max-width:85%;text-align:center;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,0.9);color:#d0e3d8}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(6px)}
 
 .choice-btn{width:100%;margin-top:10px;text-align:left;display:flex;justify-content:space-between;align-items:center}
 .hidden{display:none!important}
@@ -74,8 +74,7 @@ button:active{transform:scale(0.96);filter:brightness(1.2)}
 </head>
 <body>
 
-<div id="crt-overlay"></div>
-<div id="rotate"><div><h2>GIRE O DISPOSITIVO</h2><p>Este jogo foi desenvolvido para ser jogado na horizontal (modo paisagem).</p></div></div>
+<div id="rotate"><div><h2>GIRE O DISPOSITIVO</h2><p>Este jogo foi desenvolvido para o modo paisagem (horizontal).</p></div></div>
 <div id="game"></div>
 <div id="damage"></div>
 <div id="heartbeat-border"></div>
@@ -84,20 +83,21 @@ button:active{transform:scale(0.96);filter:brightness(1.2)}
 <div id="hud">
  <div id="top">
    <div class="panel">
-     <b id="room">ALA DE EMERGÊNCIA</b><br>
-     <span id="chapter" style="color:#7f988a;font-size:10px">CAPÍTULO 1 — O DESPERTAR</span>
+     <b id="room">TRIAGEM DE EMERGÊNCIA</b><br>
+     <span id="chapter" style="color:#6d8c7b;font-size:10px">CAPÍTULO 1 — O DESPERTAR</span>
    </div>
    <div id="inventory-bar">
-     <div class="inv-slot" id="slot-medkit" title="Kit Médico (Aperte 1 ou Toque)">🩹<span class="inv-count" id="medkit-count">0</span></div>
-     <div class="inv-slot" id="slot-key">🔑</div>
-     <div class="inv-slot" id="slot-card">💳</div>
+     <div class="inv-slot" id="slot-medkit" title="Kit Médico">🩹<span class="inv-count" id="medkit-count">0</span></div>
+     <div class="inv-slot" id="slot-key" title="Chave da Farmácia">🔑</div>
+     <div class="inv-slot" id="slot-card" title="Cartão Master">💳</div>
    </div>
    <div class="panel">
      SAÚDE <span id="hp">100%</span><div class="bar"><div class="fill" id="hpfill" style="width:100%"></div></div>
      ENERGIA <span id="st">100%</span><div class="bar"><div class="fill" id="stfill" style="width:100%"></div></div>
    </div>
  </div>
- <div id="objective" class="panel">OBJETIVO: Encontre uma maneira de sair da ala de emergência.</div>
+ <div id="crouch-badge">🤫 SILENCIOSO / AGACHADO</div>
+ <div id="objective" class="panel">OBJETIVO: Investigue o prontuário no balcão de triagem.</div>
  <div id="prompt"></div>
 </div>
 
@@ -109,7 +109,7 @@ button:active{transform:scale(0.96);filter:brightness(1.2)}
  <div id="buttons">
    <button class="ctrl" id="crouch">⬇<br>AGACHAR</button>
    <button class="ctrl" id="run">🏃<br>CORRER</button>
-   <button class="ctrl" id="flash">🔦<br>LANTERNA</button>
+   <button class="ctrl active" id="flash">🔦<br>LANTERNA</button>
    <button class="ctrl main" id="action">✋<br>INTERAGIR</button>
  </div>
 </div>
@@ -118,9 +118,9 @@ button:active{transform:scale(0.96);filter:brightness(1.2)}
 <div id="menu">
   <div class="card">
     <h1>O HOSPITAL</h1>
-    <p style="letter-spacing:2px;color:#708a7b;font-size:12px;margin-top:-10px">CAPÍTULO 1 — O DESPERTAR (EDIÇÃO DEFINITIVA)</p>
-    <p>Você acorda sozinho em um hospital devastado. A energia falhou, os corredores foram abandonados e algo faminto se move na escuridão.</p>
-    <p style="font-size:12px;color:#8ba395">🔊 Áudio sintético procedural ativado. Dica: Agachar evita fazer barulho e esconde você dos infectados.</p>
+    <p style="letter-spacing:2px;color:#6b8777;font-size:12px;margin-top:-10px">CAPÍTULO 1 — O DESPERTAR (EDIÇÃO DEFINITIVA)</p>
+    <p>Você acorda sozinho em uma ala hospitalar abandonada. As luzes falharam e criaturas famintas vagam pelos corredores escuros.</p>
+    <p style="font-size:12px;color:#7e9e8c">💡 Controles: Use WASD / Joystick para mover, F para Lanterna, C para Agachar (movimento silencioso) e E / ✋ para Interagir.</p>
     <button id="start">ENTRAR NO HOSPITAL</button>
   </div>
 </div>
@@ -135,7 +135,7 @@ button:active{transform:scale(0.96);filter:brightness(1.2)}
 
 <div id="puzzle" class="hidden">
   <div class="card">
-    <h2 id="puzzleTitle">PAINEL DO GERADOR</h2>
+    <h2 id="puzzleTitle">GERADOR DE EMERGÊNCIA</h2>
     <p id="puzzleText"></p>
     <div id="puzzleChoices"></div>
   </div>
@@ -143,22 +143,21 @@ button:active{transform:scale(0.96);filter:brightness(1.2)}
 
 <div id="death" class="hidden">
   <div class="card">
-    <h1 style="color:#d94545">VOCÊ MORREU</h1>
-    <p>A escuridão do hospital consumiu você.</p>
+    <h1 style="color:#e64a4a">VOCÊ FOI PEGO</h1>
+    <p>A escuridão do hospital devorou você.</p>
     <button onclick="location.reload()">REINICIAR CAPÍTULO</button>
   </div>
 </div>
 
 <div id="ending" class="hidden">
   <div class="card">
-    <h1 style="color:#45be87">FIM DO CAPÍTULO 1</h1>
+    <h1 style="color:#3ebd82">FIM DO CAPÍTULO 1</h1>
     <p id="endingText"></p>
     <button onclick="location.reload()">JOGAR NOVAMENTE</button>
   </div>
 </div>
 
 <script>
-// SINTETIZADOR DE ÁUDIO PROCEDURAL (Sem dependências externas de áudio)
 class SoundEngine {
   constructor() {
     this.ctx = null;
@@ -179,34 +178,34 @@ class SoundEngine {
     const filter = this.ctx.createBiquadFilter();
     
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(180 * speedMultiplier, this.ctx.currentTime);
+    filter.frequency.setValueAtTime(160 * speedMultiplier, this.ctx.currentTime);
     
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(60 + Math.random()*20, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + 0.12);
+    osc.frequency.setValueAtTime(50 + Math.random()*20, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + 0.1);
     
-    gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
     
     osc.connect(filter);
     filter.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.13);
+    osc.stop(this.ctx.currentTime + 0.11);
   }
   playFlash() {
     if (!this.initialized) return;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.05);
-    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+    osc.frequency.setValueAtTime(900, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(350, this.ctx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.06);
+    osc.stop(this.ctx.currentTime + 0.05);
   }
   playPickup() {
     if (!this.initialized) return;
@@ -214,14 +213,14 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(523.25, now);
-    osc.frequency.setValueAtTime(659.25, now + 0.08);
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.frequency.setValueAtTime(587.33, now);
+    osc.frequency.setValueAtTime(880, now + 0.08);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
-    osc.stop(now + 0.26);
+    osc.stop(now + 0.23);
   }
   playHeal() {
     if (!this.initialized) return;
@@ -229,9 +228,9 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.exponentialRampToValueAtTime(700, now + 0.3);
-    gain.gain.setValueAtTime(0.15, now);
+    osc.frequency.setValueAtTime(260, now);
+    osc.frequency.exponentialRampToValueAtTime(650, now + 0.3);
+    gain.gain.setValueAtTime(0.18, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
@@ -244,9 +243,9 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, now);
-    osc.frequency.linearRampToValueAtTime(80, now + 0.4);
-    gain.gain.setValueAtTime(0.1, now);
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.linearRampToValueAtTime(70, now + 0.4);
+    gain.gain.setValueAtTime(0.12, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
@@ -259,7 +258,7 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.setValueAtTime(160, now);
     osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
     gain.gain.setValueAtTime(0.3, now);
     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
@@ -274,10 +273,10 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(90, now);
-    osc.frequency.linearRampToValueAtTime(140, now + 0.2);
-    osc.frequency.linearRampToValueAtTime(50, now + 0.6);
-    gain.gain.setValueAtTime(0.2, now);
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.linearRampToValueAtTime(130, now + 0.2);
+    osc.frequency.linearRampToValueAtTime(40, now + 0.6);
+    gain.gain.setValueAtTime(0.25, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
@@ -303,8 +302,8 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(55, this.ctx.currentTime);
-    gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(45, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.025, this.ctx.currentTime);
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     osc.start();
@@ -316,10 +315,12 @@ const container = document.getElementById('game');
 const scene = new THREE.Scene();
 const clock = new THREE.Clock();
 
-scene.background = new THREE.Color(0x040605);
-scene.fog = new THREE.FogExp2(0x040605, 0.048);
+scene.background = new THREE.Color(0x020403);
+scene.fog = new THREE.FogExp2(0x020403, 0.045);
 
 const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 120);
+scene.add(camera);
+
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 renderer.setSize(innerWidth, innerHeight);
@@ -327,26 +328,39 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-// Luz ambiente suave
-const ambientLight = new THREE.HemisphereLight(0x404e46, 0x020302, 0.45);
+// Luz ambiente muito suave para manter o clima de terror
+const ambientLight = new THREE.HemisphereLight(0x283830, 0x010302, 0.25);
 scene.add(ambientLight);
 
-const flashlight = new THREE.SpotLight(0xedfaf2, 5.5, 30, Math.PI/6.8, 0.5, 1.5);
+// Flashlight SpotLight setup
+const flashlight = new THREE.SpotLight(0xfffaed, 8.5, 35, Math.PI/5.5, 0.45, 1.2);
 flashlight.castShadow = true;
 flashlight.shadow.mapSize.set(512, 512);
-flashlight.shadow.camera.near = 0.5;
-flashlight.shadow.camera.far = 30;
+flashlight.shadow.camera.near = 0.3;
+flashlight.shadow.camera.far = 35;
 
 const flashlightTarget = new THREE.Object3D();
-scene.add(flashlightTarget);
-flashlight.target = flashlightTarget;
-camera.add(flashlight);
-camera.add(flashlightTarget);
-flashlight.position.set(0.2, -0.2, 0);
 flashlightTarget.position.set(0, 0, -10);
 
-const flashlightGlow = new THREE.PointLight(0xcde3d7, 0.4, 4);
-camera.add(flashlightGlow);
+camera.add(flashlight);
+camera.add(flashlightTarget);
+flashlight.target = flashlightTarget;
+flashlight.position.set(0.2, -0.2, 0);
+
+// Volumetric Light Cone Effect (Feixe Visível de Luz)
+const coneGeo = new THREE.CylinderGeometry(0.08, 2.2, 14, 16, 1, true);
+coneGeo.rotateX(-Math.PI/2);
+coneGeo.translate(0, 0, -7);
+const coneMat = new THREE.MeshBasicMaterial({
+  color: 0xddf4e8,
+  transparent: true,
+  opacity: 0.16,
+  side: THREE.DoubleSide,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const flashlightCone = new THREE.Mesh(coneGeo, coneMat);
+camera.add(flashlightCone);
 
 function makeTex(bgColor, detailColor, pattern='noise') {
   const c = document.createElement('canvas');
@@ -357,15 +371,18 @@ function makeTex(bgColor, detailColor, pattern='noise') {
   
   if (pattern === 'tiles') {
     ctx.strokeStyle = detailColor;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     for (let i=0; i<=256; i+=64) {
       ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(256,i); ctx.stroke();
     }
+  } else if (pattern === 'stripes') {
+    ctx.fillStyle = detailColor;
+    for (let i=0; i<256; i+=16) ctx.fillRect(i,0,8,256);
   }
   
   ctx.fillStyle = detailColor;
-  for (let i=0; i<800; i++) {
+  for (let i=0; i<900; i++) {
     ctx.globalAlpha = Math.random() * 0.15;
     ctx.fillRect(Math.random()*256, Math.random()*256, 1+Math.random()*4, 1+Math.random()*4);
   }
@@ -375,12 +392,14 @@ function makeTex(bgColor, detailColor, pattern='noise') {
   return t;
 }
 
-const floorMat = new THREE.MeshStandardMaterial({ map: makeTex('#282b28', '#101411', 'tiles'), roughness: 0.8, metalness: 0.1 });
-floorMat.map.repeat.set(8,8);
-const wallMat = new THREE.MeshStandardMaterial({ map: makeTex('#525a54', '#1d231f', 'noise'), roughness: 0.9 });
-const metalMat = new THREE.MeshStandardMaterial({ color: 0x4a5450, roughness: 0.4, metalness: 0.7 });
-const darkMat = new THREE.MeshStandardMaterial({ color: 0x181c19, roughness: 0.9 });
-const bloodMat = new THREE.MeshStandardMaterial({ color: 0x660808, roughness: 0.3, metalness: 0.1 });
+const floorMat = new THREE.MeshStandardMaterial({ map: makeTex('#222623', '#0e120f', 'tiles'), roughness: 0.7, metalness: 0.1 });
+floorMat.map.repeat.set(12,12);
+const wallMat = new THREE.MeshStandardMaterial({ map: makeTex('#465249', '#1d2620', 'noise'), roughness: 0.85 });
+const trimMat = new THREE.MeshStandardMaterial({ color: 0x1f2b23, roughness: 0.6 });
+const metalMat = new THREE.MeshStandardMaterial({ color: 0x3d4842, roughness: 0.3, metalness: 0.7 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x121714, roughness: 0.9 });
+const glassMat = new THREE.MeshStandardMaterial({ color: 0x739988, transparent: true, opacity: 0.3, roughness: 0.1 });
+const bloodMat = new THREE.MeshStandardMaterial({ color: 0x540606, roughness: 0.2, metalness: 0.1 });
 
 const colliders = [];
 const interactives = [];
@@ -389,20 +408,20 @@ const rooms = [];
 const doors = [];
 
 const player = new THREE.Group();
-player.position.set(0, 0, -28);
+player.position.set(0, 0, -26);
 scene.add(player);
 
-const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.42), new THREE.MeshStandardMaterial({color: 0x222c27}));
+const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.05, 0.45), new THREE.MeshStandardMaterial({color: 0x1d2922}));
 torso.position.y = 1.25;
 player.add(torso);
 
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshStandardMaterial({color: 0xa8836f}));
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshStandardMaterial({color: 0x9c7965}));
 head.position.y = 2.02;
 player.add(head);
 
 const legs = [];
-for (let x of [-0.2, 0.2]) {
-  let m = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.8, 0.24), new THREE.MeshStandardMaterial({color: 0x1a201c}));
+for (let x of [-0.22, 0.22]) {
+  let m = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.8, 0.26), new THREE.MeshStandardMaterial({color: 0x151c17}));
   m.position.set(x, 0.4, 0);
   player.add(m);
   legs.push(m);
@@ -427,6 +446,9 @@ function floor(x, z, w, d) {
 
 function wall(x, z, w, d) {
   box(x, 2.7, z, w, 5.4, d, wallMat, true);
+  // Rodapé decorativo realista para a parede
+  if (w > d) box(x, 0.15, z, w, 0.3, d + 0.1, trimMat, false);
+  else box(x, 0.15, z, w + 0.1, 0.3, d, trimMat, false);
 }
 
 function collide(p, r=0.45) {
@@ -440,10 +462,10 @@ function collide(p, r=0.45) {
 
 const ceilingLamps = [];
 function lamp(x, z, on=true) {
-  let l = new THREE.PointLight(on ? 0xa8baad : 0x3a1212, on ? 1.2 : 0.2, 12);
-  l.position.set(x, 4.7, z);
+  let l = new THREE.PointLight(on ? 0x9bc2ab : 0x4a1818, on ? 1.4 : 0.2, 14);
+  l.position.set(x, 4.8, z);
   scene.add(l);
-  box(x, 4.95, z, 0.6, 0.1, 1.4, metalMat, false);
+  box(x, 5.0, z, 0.8, 0.1, 1.6, metalMat, false);
   ceilingLamps.push({ light: l, baseOn: on, flickerTimer: Math.random()*10 });
   return l;
 }
@@ -454,25 +476,35 @@ function doorMesh(x, z, w, d, angle=0) {
   let dMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 2.8, d), metalMat);
   dMesh.position.set(w/2, 1.4, 0);
   dMesh.castShadow = true;
+  
+  // Maçaneta da porta
+  let handle = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.3), new THREE.MeshStandardMaterial({color: 0xc0c0c0, metalness:0.9}));
+  handle.position.set(w * 0.85, 1.3, 0.1);
+  dMesh.add(handle);
+  
   pivot.add(dMesh);
   scene.add(pivot);
+  
+  // Eucatex / Marco da Porta
+  box(x - w/2, 1.4, z, 0.15, 2.9, d + 0.1, trimMat, false);
+  box(x + w/2, 1.4, z, 0.15, 2.9, d + 0.1, trimMat, false);
   
   let doorObj = { pivot, open: false, targetAngle: angle };
   doors.push(doorObj);
   return doorObj;
 }
 
-function sign(x, z, text) {
+function sign(x, z, text, glowColor="#7ee0a9") {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 128;
   const q = c.getContext('2d');
-  q.fillStyle = '#101814'; q.fillRect(0,0,512,128);
-  q.strokeStyle = '#4a6354'; q.lineWidth = 6; q.strokeRect(4,4,504,120);
-  q.fillStyle = '#b8d4c4'; q.font = 'bold 36px Rajdhani'; q.textAlign = 'center';
+  q.fillStyle = '#0a120e'; q.fillRect(0,0,512,128);
+  q.strokeStyle = glowColor; q.lineWidth = 6; q.strokeRect(6,6,500,116);
+  q.fillStyle = glowColor; q.font = 'bold 36px Rajdhani'; q.textAlign = 'center';
   q.fillText(text, 256, 75);
   let sp = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), transparent: true}));
   sp.position.set(x, 3.8, z);
-  sp.scale.set(4, 1, 1);
+  sp.scale.set(3.8, 0.95, 1);
   scene.add(sp);
 }
 
@@ -481,64 +513,89 @@ function addRoom(name, x, z, w, d) {
   floor(x, z, w, d);
 }
 
-addRoom('ALA DE EMERGÊNCIA', 0, -25, 12, 22);
-addRoom('RECEPÇÃO', 0, -5, 20, 14);
-addRoom('CORREDOR PRINCIPAL', 0, 12, 12, 20);
-addRoom('ENFERMARIA', -16, 10, 18, 18);
-addRoom('FARMÁCIA', 16, 10, 16, 14);
-addRoom('UTI', -16, 30, 18, 18);
-addRoom('MANUTENÇÃO', 16, 30, 16, 18);
-addRoom('SAÍDA PRINCIPAL', 0, 42, 14, 12);
+// Layout Sensato de Hospital Real
+addRoom('TRIAGEM DE EMERGÊNCIA', 0, -25, 12, 22);
+addRoom('RECEPÇÃO PRINCIPAL', 0, -5, 22, 14);
+addRoom('CORREDOR CENTRAL', 0, 12, 12, 20);
+addRoom('FARMÁCIA E INSUMOS', -16, 10, 18, 18);
+addRoom('SALA DE CONSULTAS', 16, 10, 16, 14);
+addRoom('UTI WARD - TERAPIA INTENSIVA', -16, 30, 18, 18);
+addRoom('MANUTENÇÃO E GERADOR', 16, 30, 16, 18);
+addRoom('PORTA DE SAÍDA DE EMERGÊNCIA', 0, 42, 14, 12);
 
-// Paredes e corredores
+// Paredes estruturais externas e internas
 wall(0, -36, 12, 0.5); wall(-6, -25, 0.5, 22); wall(6, -25, 0.5, 22);
-wall(-10, -12, 8, 0.5); wall(10, -12, 8, 0.5);
-wall(-10, 2, 0.5, 14); wall(10, 2, 0.5, 14);
-wall(-6, 2, 8, 0.5); wall(6, 2, 8, 0.5);
-wall(-10, 12, 0.5, 18); wall(10, 12, 0.5, 18);
-wall(-6, 22, 8, 0.5); wall(6, 22, 8, 0.5);
-wall(-10, 32, 0.5, 18); wall(10, 32, 0.5, 18);
+wall(-11, -12, 10, 0.5); wall(11, -12, 10, 0.5);
+wall(-11, 2, 0.5, 14); wall(11, 2, 0.5, 14);
+wall(-6, 2, 10, 0.5); wall(6, 2, 10, 0.5);
+wall(-11, 12, 0.5, 18); wall(11, 12, 0.5, 18);
+wall(-6, 22, 10, 0.5); wall(6, 22, 10, 0.5);
+wall(-11, 32, 0.5, 18); wall(11, 32, 0.5, 18);
 wall(0, 48, 14, 0.5); wall(-7, 42, 0.5, 12); wall(7, 42, 0.5, 12);
 
-wall(-19, 10, 0.5, 18); wall(-13, 1, 12, 0.5); wall(-13, 19, 12, 0.5);
-wall(19, 10, 0.5, 14); wall(13, 3, 12, 0.5); wall(13, 17, 12, 0.5);
-wall(-19, 30, 0.5, 18); wall(-13, 21, 12, 0.5); wall(-13, 39, 12, 0.5);
-wall(19, 30, 0.5, 18); wall(13, 21, 12, 0.5); wall(13, 39, 12, 0.5);
+wall(-25, 10, 0.5, 18); wall(-18, 1, 14, 0.5); wall(-18, 19, 14, 0.5);
+wall(24, 10, 0.5, 14); wall(17, 3, 14, 0.5); wall(17, 17, 14, 0.5);
+wall(-25, 30, 0.5, 18); wall(-18, 21, 14, 0.5); wall(-18, 39, 14, 0.5);
+wall(24, 30, 0.5, 18); wall(17, 21, 14, 0.5); wall(17, 39, 14, 0.5);
 
+// Lâmpadas do teto
 for (let z=-29; z<45; z+=10) lamp(0, z, z!==12);
-sign(0, -31, 'EMERGÊNCIA'); sign(0, -8, 'RECEPÇÃO'); sign(-16, 3, 'ENFERMARIA');
-sign(16, 5, 'FARMÁCIA'); sign(-16, 23, 'UTI'); sign(16, 23, 'MANUTENÇÃO');
+sign(0, -31, 'EMERGÊNCIA'); sign(0, -8, 'RECEPÇÃO'); sign(-16, 3, 'FARMÁCIA');
+sign(16, 5, 'CONSULTÓRIO'); sign(-16, 23, 'UTI INTENSIVA'); sign(16, 23, 'GERADOR');
 
-// Camas de hospital
-function bed(x, z) {
-  box(x, 0.65, z, 2.4, 0.3, 4.5, metalMat, true);
-  box(x, 1.0, z, 2.2, 0.35, 4.0, darkMat, false);
-  box(x, 1.9, z-1.9, 2.4, 1.6, 0.15, metalMat, false);
-  // Soro Hospitalar
-  box(x+1.1, 1.6, z-1.5, 0.1, 3.2, 0.1, metalMat, false);
+// Camas Macas de Hospital Detalhadas
+function gurney(x, z) {
+  box(x, 0.65, z, 2.2, 0.3, 4.2, metalMat, true); // Estrutura metal
+  box(x, 0.95, z, 2.0, 0.35, 3.9, darkMat, false); // Colchão
+  box(x, 1.8, z-1.8, 2.2, 1.5, 0.15, metalMat, false); // Encosto
+  // Suporte de Soro (IV Drip Stand)
+  box(x+0.9, 1.6, z-1.4, 0.08, 3.0, 0.08, metalMat, false);
+  box(x+0.9, 3.0, z-1.4, 0.4, 0.1, 0.08, metalMat, false);
+  // Bolsa de Soro
+  box(x+0.8, 2.7, z-1.4, 0.2, 0.4, 0.15, glassMat, false);
 }
-for (let x of [-16, -12]) for (let z of [6, 12]) bed(x, z);
-for (let x of [-17, -13]) for (let z of [27, 33]) bed(x, z);
+
+for (let x of [-18, -14]) for (let z of [6, 13]) gurney(x, z);
+for (let x of [-18, -14]) for (let z of [26, 33]) gurney(x, z);
+
+// Balcão de Recepção
+box(0, 0.75, -10, 6.0, 1.5, 1.2, trimMat, true);
+// Computador da Recepção
+box(-1.2, 1.8, -10, 0.8, 0.6, 0.15, metalMat, false);
+box(-1.2, 1.8, -9.9, 0.7, 0.5, 0.02, glassMat, false);
+
+// Monitores de UTI com Luzes Eletrocardiograma
+function heartMonitor(x, z) {
+  box(x, 1.4, z, 0.8, 0.8, 0.5, darkMat, true);
+  let scr = box(x, 1.4, z+0.26, 0.65, 0.65, 0.02, new THREE.MeshStandardMaterial({color: 0x0f381e, emissive: 0x0b2916}), false);
+}
+heartMonitor(-23, 26);
+heartMonitor(-23, 33);
+
+// Prateleiras de Remédios na Farmácia
+for (let sz=6; sz<=14; sz+=4) {
+  box(-23.5, 1.8, sz, 0.6, 3.5, 2.5, metalMat, true);
+}
 
 // Manchas de sangue no chão
-for (let i=0; i<6; i++) {
-  let b = new THREE.Mesh(new THREE.PlaneGeometry(2+Math.random()*2, 2+Math.random()*2), bloodMat);
+for (let i=0; i<8; i++) {
+  let b = new THREE.Mesh(new THREE.PlaneGeometry(2+Math.random()*2.5, 2+Math.random()*2.5), bloodMat);
   b.rotation.x = -Math.PI/2;
-  b.position.set((Math.random()-0.5)*20, 0.02, (Math.random()-0.5)*50);
+  b.position.set((Math.random()-0.5)*22, 0.02, (Math.random()-0.5)*55);
   scene.add(b);
 }
 
-// Partículas de poeira suspensas
+// Partículas de poeira e fumaça em suspensão no ar
 const particleGeo = new THREE.BufferGeometry();
-const particleCount = 150;
+const particleCount = 200;
 const posArray = new Float32Array(particleCount * 3);
 for (let i=0; i<particleCount*3; i+=3) {
-  posArray[i] = (Math.random()-0.5)*30;
-  posArray[i+1] = Math.random()*4;
-  posArray[i+2] = (Math.random()-0.5)*70;
+  posArray[i] = (Math.random()-0.5)*35;
+  posArray[i+1] = Math.random()*4.5;
+  posArray[i+2] = (Math.random()-0.5)*75;
 }
 particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const particleMat = new THREE.PointsMaterial({ size: 0.08, color: 0x9bc2ab, transparent: true, opacity: 0.35 });
+const particleMat = new THREE.PointsMaterial({ size: 0.08, color: 0x7ee0a9, transparent: true, opacity: 0.25 });
 const particles = new THREE.Points(particleGeo, particleMat);
 scene.add(particles);
 
@@ -555,20 +612,20 @@ function interactive(mesh, prompt, fn) {
   interactives.push({ mesh, prompt, fn, used: false });
 }
 
-// Prontuário
-const note = box(-3, 0.85, -25, 0.5, 0.06, 0.7, new THREE.MeshStandardMaterial({color: 0xded2ad}), false);
-interactive(note, 'Ler prontuário abandonado', o => {
+// Prontuário na Triagem
+const note = box(-1.2, 1.55, -9.8, 0.5, 0.05, 0.6, new THREE.MeshStandardMaterial({color: 0xded2ad}), false);
+interactive(note, 'Ler prontuário sobre o balcão', o => {
   noteRead = true;
   audio.playPickup();
-  story('PRONTUÁRIO 237', '“Paciente transferido para a UTI às pressas. O sistema elétrico da ala norte colapsou. AVISO: Não acione a manutenção sem verificar a sequência dos reatores.”');
+  story('PRONTUÁRIO DE EMERGÊNCIA #204', '“Paciente zero apresentou colapso pulmonar seguido de agressividade extrema. A ala norte foi selada. O GERADOR DE EMERGÊNCIA na Manutenção precisa ser reativado para liberar as portas eletrônicas.”');
   scene.remove(o.mesh);
   o.used = true;
-  setObjective('OBJETIVO: Vá até a Manutenção e restaure o gerador.');
+  setObjective('OBJETIVO: Vá até a Manutenção (Leste) e religue o Gerador.');
 });
 
 // Kit Médico Coletável 1
-const med1 = box(-15, 0.85, 10, 0.6, 0.3, 0.6, new THREE.MeshStandardMaterial({color: 0xd9e5de}), false);
-interactive(med1, 'Pegar Kit Médico', o => {
+const med1 = box(-17, 0.85, 10, 0.6, 0.35, 0.6, new THREE.MeshStandardMaterial({color: 0xd9e5de}), false);
+interactive(med1, 'Pegar Kit Médico de Emergência', o => {
   inventory.medkits++;
   audio.playPickup();
   updateInventoryUI();
@@ -577,21 +634,21 @@ interactive(med1, 'Pegar Kit Médico', o => {
   o.used = true;
 });
 
-// Gerador
-const genPanel = box(16, 1.5, 31, 1.2, 2.0, 0.35, metalMat, false);
-interactive(genPanel, 'Examinar painel elétrico', () => {
+// Painel do Gerador
+const genPanel = box(22, 1.5, 31, 0.4, 2.0, 1.4, metalMat, false);
+interactive(genPanel, 'Examinar Gerador de Energia', () => {
   if (!noteRead) {
-    toast('Você precisa entender como o sistema funciona primeiro.');
+    toast('Você precisa ler as instruções no balcão de triagem primeiro.');
     return;
   }
   openPuzzle();
 });
 
-// Chave da Farmácia
-const keyMesh = box(16, 0.9, 9, 0.35, 0.12, 0.7, new THREE.MeshStandardMaterial({color: 0xd4af37, metalness:0.8}), false);
+// Chave da Farmácia na Sala de Consultas
+const keyMesh = box(18, 0.9, 10, 0.35, 0.1, 0.6, new THREE.MeshStandardMaterial({color: 0xd4af37, metalness:0.8}), false);
 interactive(keyMesh, 'Pegar Chave da Farmácia', o => {
   if (!generatorFixed) {
-    toast('Está escuro demais aqui. Restaure a energia primeiro.');
+    toast('A sala está escura demais. Religue o gerador primeiro.');
     return;
   }
   inventory.pharmacyKey = true;
@@ -600,42 +657,42 @@ interactive(keyMesh, 'Pegar Chave da Farmácia', o => {
   o.used = true;
   scene.remove(o.mesh);
   toast('CHAVE DA FARMÁCIA OBTIDA');
-  setObjective('OBJETIVO: Abra a Farmácia e busque o cartão de acesso.');
+  setObjective('OBJETIVO: Abra a Farmácia (Oeste) e procure o Cartão Master.');
 });
 
-// Porta da Farmácia com Animação
-const pharmacyDoor = doorMesh(10, 10, 0.2, 3.5, 0);
-const pharmacyDoorTrigger = box(10, 1.4, 10, 1.5, 2.8, 2.0, darkMat, false);
+// Porta Animada da Farmácia
+const pharmacyDoor = doorMesh(-11, 10, 0.2, 3.5, 0);
+const pharmacyDoorTrigger = box(-11, 1.4, 10, 1.5, 2.8, 2.0, darkMat, false);
 pharmacyDoorTrigger.visible = false;
 interactive(pharmacyDoorTrigger, 'Usar Chave na Porta da Farmácia', o => {
   if (!inventory.pharmacyKey) {
-    toast('A porta da farmácia está trancada. Você precisa da chave.');
+    toast('A porta da Farmácia está trancada. Encontre a chave no Consultório.');
     return;
   }
   audio.playDoor();
-  pharmacyDoor.targetAngle = Math.PI/2;
+  pharmacyDoor.targetAngle = -Math.PI/2;
   o.used = true;
   toast('PORTA DA FARMÁCIA DESTRANCADA');
 });
 
-// Armário da Farmácia
-const medCab = box(15, 0.9, 12, 1.5, 1.8, 0.5, metalMat, false);
-interactive(medCab, 'Examinar armário de remédios', () => {
+// Armário de Documentos na Farmácia
+const medCab = box(-22, 1.2, 12, 0.8, 1.8, 1.2, metalMat, false);
+interactive(medCab, 'Investigar registros de medicação', () => {
   if (!inventory.pharmacyKey) {
-    toast('O armário está trancado.');
+    toast('Trancado.');
     return;
   }
   cardClueFound = true;
   audio.playPickup();
-  story('BILHETE DA FARMÁCIA', '“O cartão de segurança da administração foi levado para a UTI durante a evacuação. Aquele garoto infectado... ele ainda está lá dentro.”');
-  setObjective('OBJETIVO: Vá até a UTI e recupere o Cartão de Acesso.');
+  story('DIÁRIO DO MÉDICO CHEFE', '“O Cartão de Acesso Master foi levado para a UTI durante a evacuação de pânico. Cuidado... o sujeito infectado da sala 3 ainda está rondando aquele setor.”');
+  setObjective('OBJETIVO: Vá até a UTI (Norte) e recupere o Cartão Master.');
 });
 
 // Cartão de Acesso na UTI
-const card = box(-16, 1.1, 34, 0.8, 0.08, 0.5, new THREE.MeshStandardMaterial({color: 0x2e8b57, metalness:0.5}), false);
-interactive(card, 'Pegar Cartão de Acesso', o => {
+const card = box(-21, 1.1, 33, 0.6, 0.08, 0.4, new THREE.MeshStandardMaterial({color: 0x3ebd82, metalness:0.6}), false);
+interactive(card, 'Pegar Cartão de Acesso Master', o => {
   if (!cardClueFound) {
-    toast('Você ainda não sabe o que procurar aqui.');
+    toast('Você ainda não sabe o que procurar nesta área.');
     return;
   }
   inventory.accessCard = true;
@@ -644,37 +701,37 @@ interactive(card, 'Pegar Cartão de Acesso', o => {
   o.used = true;
   scene.remove(o.mesh);
   exitUnlocked = true;
-  story('CARTÃO DE ACESSO OBTIDO', 'Você possui o cartão master. Um barulho alto reverbera no corredor principal... algo acordou!');
-  setObjective('OBJETIVO: Corra para a SAÍDA PRINCIPAL!');
+  story('CARTÃO MASTER ENCONTRADO!', 'Você possui o cartão de segurança supremo. Um rugido sepulcral ecoa pelo corredor central... o infectado sentiu sua presença!');
+  setObjective('OBJETIVO: Corra para a SAÍDA DE EMERGÊNCIA (Fim do Corredor)!');
 });
 
-// Saída Principal
-const exitPanel = box(2, 1.5, 46.6, 0.6, 1.4, 0.3, new THREE.MeshStandardMaterial({color: 0x8b0000}), false);
-interactive(exitPanel, 'Usar Cartão na Saída', () => {
+// Painel da Saída Principal
+const exitPanel = box(2.2, 1.5, 46.5, 0.5, 1.4, 0.3, new THREE.MeshStandardMaterial({color: 0x8b0000}), false);
+interactive(exitPanel, 'Usar Cartão na Saída de Emergência', () => {
   if (!inventory.accessCard) {
-    toast('A porta trancada exige o Cartão de Acesso Master.');
+    toast('A trava eletrônica exige o CARTÃO MASTER.');
     return;
   }
   audio.playDoor();
-  document.getElementById('endingText').textContent = 'Você passou pela porta pesada e a trancou atrás de si. A noite lá fora está fria e em chamas. O pesadelo do hospital ficou para trás... por enquanto.';
+  document.getElementById('endingText').textContent = 'A pesada porta blindada de emergência se abre. Você se lança para o ar frio da noite enquanto as sirenes da cidade ecoam ao longe. O pesadelo do hospital ficou para trás... por enquanto.';
   document.getElementById('ending').classList.remove('hidden');
 });
 
 function createInfected(x, z) {
   let g = new THREE.Group();
-  let m = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.15, 0.5), new THREE.MeshStandardMaterial({color: 0x2d3630}));
-  m.position.y = 1.15;
+  let m = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.2, 0.55), new THREE.MeshStandardMaterial({color: 0x222d25}));
+  m.position.y = 1.2;
   g.add(m);
   
-  let h = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 10), new THREE.MeshStandardMaterial({color: 0x6e7b69}));
-  h.position.y = 1.95;
+  let h = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 10), new THREE.MeshStandardMaterial({color: 0x5a6956}));
+  h.position.y = 2.05;
   g.add(h);
   
-  // Olhos vermelhos brilhantes
-  const eyeMat = new THREE.MeshBasicMaterial({color: 0xff2200});
-  for (let ex of [-0.11, 0.11]) {
-    let eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), eyeMat);
-    eye.position.set(ex, 2.0, 0.26);
+  // Olhos vermelhos famintos
+  const eyeMat = new THREE.MeshBasicMaterial({color: 0xff1100});
+  for (let ex of [-0.12, 0.12]) {
+    let eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
+    eye.position.set(ex, 2.1, 0.28);
     g.add(eye);
   }
   
@@ -686,20 +743,21 @@ function createInfected(x, z) {
     home: new THREE.Vector3(x, 0, z),
     target: new THREE.Vector3(x, 0, z),
     state: 'patrol',
-    speed: 2.2,
+    speed: 2.3,
     t: 0,
     attackCd: 0,
     roarCd: 0
   });
 }
 
-createInfected(-16, 16);
-createInfected(16, 18);
-createInfected(-16, 39);
+createInfected(-16, 14);
+createInfected(16, 16);
+createInfected(-16, 36);
 
 let hp = 100, stamina = 100, flash = true, crouching = false, running = false, playing = false;
-let camYaw = Math.PI, camPitch = 0.2, joy = {x:0, y:0};
-let hitFlash = 0, walkBob = 0, heartbeatTimer = 0;
+let camYaw = Math.PI, camPitch = 0.1, joy = {x:0, y:0};
+let hitFlash = 0, heartbeatTimer = 0;
+let camCurrentHeight = 2.0; // Dynamic camera height for crouching
 
 function setObjective(t) { document.getElementById('objective').textContent = t; }
 
@@ -722,10 +780,10 @@ document.getElementById('storyNext').onclick = () => document.getElementById('st
 function useMedkit() {
   if (inventory.medkits > 0 && hp < 100) {
     inventory.medkits--;
-    hp = Math.min(100, hp + 40);
+    hp = Math.min(100, hp + 45);
     audio.playHeal();
     updateInventoryUI();
-    toast('SAÚDE RESTAURADA (+40%)');
+    toast('SAÚDE RESTAURADA (+45%)');
   } else if (hp >= 100) {
     toast('SUA SAÚDE JÁ ESTÁ NO MÁXIMO.');
   } else {
@@ -735,14 +793,14 @@ function useMedkit() {
 document.getElementById('slot-medkit').onclick = useMedkit;
 
 function openPuzzle() {
-  document.getElementById('puzzleText').textContent = 'O relé do gerador exige uma sequência de pulso de três etapas: [2] → [1] → [3].';
+  document.getElementById('puzzleText').textContent = 'Sequência de reinicialização dos reatores: [2] → [1] → [3].';
   let c = document.getElementById('puzzleChoices');
   c.innerHTML = '';
   let seq = [];
   for (let n of [1, 2, 3]) {
     let b = document.createElement('button');
     b.className = 'choice-btn';
-    b.innerHTML = `<span>ACIONAR INTERRUPTOR ${n}</span> <span>⚡</span>`;
+    b.innerHTML = `<span>INTERRUPTOR PRINCIPAL ${n}</span> <span>⚡</span>`;
     b.onclick = () => {
       audio.playPuzzleBeep(true);
       seq.push(n);
@@ -750,13 +808,13 @@ function openPuzzle() {
         if (seq.join(',') === '2,1,3') {
           generatorFixed = true;
           document.getElementById('puzzle').classList.add('hidden');
-          toast('ENERGIA RESTAURADA COM SUCESSO');
-          setObjective('OBJETIVO: Encontre a Chave da Farmácia.');
-          story('ENERGIA RESTAURADA', 'Os geradores resmungam e as luzes do hospital voltam a piscar. O caminho para a farmácia agora está acessível.');
+          toast('ENERGIA RESTAURADA COM SUCESSO!');
+          setObjective('OBJETIVO: Busque a Chave da Farmácia no Consultório.');
+          story('ENERGIA RESTAURADA', 'Os grandes geradores voltam à vida com um rugido elétrico! As luzes do hospital piscam e o caminho para o Consultório e Farmácia agora está livre.');
         } else {
           seq = [];
           audio.playPuzzleBeep(false);
-          toast('SEQUÊNCIA INCORRETA. REINICIANDO PAINEL...');
+          toast('SEQUÊNCIA ERRADA! PAINEL REINICIADO.');
         }
       }
     };
@@ -770,36 +828,39 @@ function action() {
       !document.getElementById('puzzle').classList.contains('hidden') ||
       !document.getElementById('ending').classList.contains('hidden')) return;
       
-  let best = null, dist = 2.6;
+  let best = null, dist = 2.8;
   for (const o of interactives) if (!o.used) {
     const d = o.mesh.position.distanceTo(player.position);
     if (d < dist) { dist = d; best = o; }
   }
   if (best) best.fn(best);
-  else toast('Nada para interagir por perto.');
+  else toast('Nada para interagir aqui.');
 }
 document.getElementById('action').onclick = action;
 
 function setFlash(on) {
   flash = on;
   flashlight.visible = flash;
-  flashlightGlow.visible = flash;
+  flashlightCone.visible = flash;
   audio.playFlash();
   document.getElementById('flash').classList.toggle('active', flash);
 }
 document.getElementById('flash').onclick = () => setFlash(!flash);
 
-document.getElementById('crouch').onclick = () => {
+function toggleCrouch() {
   crouching = !crouching;
   if (crouching) running = false;
-  document.getElementById('crouch').style.opacity = crouching ? 0.5 : 1;
-};
+  document.getElementById('crouch').classList.toggle('active', crouching);
+  document.getElementById('crouch-badge').classList.toggle('active', crouching);
+  toast(crouching ? 'AGACHADO (MODO SILENCIOSO)' : 'EM PÉ');
+}
+document.getElementById('crouch').onclick = toggleCrouch;
 
 const runBtn = document.getElementById('run');
-runBtn.onpointerdown = e => { e.preventDefault(); running = true; runBtn.setPointerCapture?.(e.pointerId); };
+runBtn.onpointerdown = e => { e.preventDefault(); if (!crouching) running = true; runBtn.setPointerCapture?.(e.pointerId); };
 ['pointerup','pointercancel','pointerleave'].forEach(ev => runBtn.addEventListener(ev, () => running = false));
 
-// Joystick de toque
+// Controles Touch Joystick
 const joyEl = document.getElementById('joy'), stick = document.getElementById('stick');
 let joyId = null;
 function updJoy(e) {
@@ -814,14 +875,14 @@ function endJoy() { joyId = null; joy.x = joy.y = 0; stick.style.transform = 'tr
 joyEl.addEventListener('pointerup', endJoy);
 joyEl.addEventListener('pointercancel', endJoy);
 
-// Controle de visão por toque
+// Controle de Visão Touch Drag
 let lookId = null, lastLook = null;
 const look = document.getElementById('look');
 look.addEventListener('pointerdown', e => { lookId = e.pointerId; lastLook = [e.clientX, e.clientY]; look.setPointerCapture(lookId); });
 look.addEventListener('pointermove', e => {
   if (e.pointerId !== lookId) return;
-  camYaw -= (e.clientX - lastLook[0]) * 0.007;
-  camPitch = Math.max(-0.25, Math.min(0.55, camPitch - (e.clientY - lastLook[1]) * 0.005));
+  camYaw -= (e.clientX - lastLook[0]) * 0.006;
+  camPitch = Math.max(-0.35, Math.min(0.55, camPitch - (e.clientY - lastLook[1]) * 0.005));
   lastLook = [e.clientX, e.clientY];
 });
 look.addEventListener('pointerup', () => lookId = null);
@@ -830,47 +891,58 @@ look.addEventListener('pointercancel', () => lookId = null);
 let footstepTimer = 0;
 
 function update(dt, t) {
-  // Atualiza nome do cômodo
+  // Atualiza nome da sala no HUD
   let room = rooms.find(r => Math.abs(player.position.x - r.x) < r.w/2 && Math.abs(player.position.z - r.z) < r.d/2);
   if (room) document.getElementById('room').textContent = room.name;
   
-  // Animação de portas
+  // Animação de Portas
   for (let d of doors) {
     d.pivot.rotation.y = THREE.MathUtils.lerp(d.pivot.rotation.y, d.targetAngle, dt * 5);
   }
   
-  // Movimento do jogador
+  // Transição suave da altura do jogador e da câmera para AGACHAR
+  let targetCamH = crouching ? 1.05 : 2.0;
+  camCurrentHeight = THREE.MathUtils.lerp(camCurrentHeight, targetCamH, dt * 8);
+  torso.scale.y = THREE.MathUtils.lerp(torso.scale.y, crouching ? 0.55 : 1.0, dt * 8);
+  head.position.y = THREE.MathUtils.lerp(head.position.y, crouching ? 1.3 : 2.02, dt * 8);
+
+  // Movimento do Jogador
   let forward = new THREE.Vector3(Math.sin(camYaw), 0, Math.cos(camYaw));
   let right = new THREE.Vector3(forward.z, 0, -forward.x);
   let mv = forward.clone().multiplyScalar(joy.y).add(right.multiplyScalar(joy.x));
   if (mv.length() > 1) mv.normalize();
   
   let sprint = running && stamina > 1 && mv.length() > 0.1 && !crouching;
-  let speed = crouching ? 2.0 : sprint ? 5.8 : 3.5;
+  let speed = crouching ? 1.6 : sprint ? 5.8 : 3.4;
   
   if (sprint) stamina = Math.max(0, stamina - 26*dt);
   else stamina = Math.min(100, stamina + 16*dt);
   
-  let next = player.position.clone().addScaledVector(mv, speed*dt);
-  if (!collide(next)) player.position.copy(next);
+  // Movimento com deslizamento de colisão nas paredes
+  let deltaMove = mv.clone().multiplyScalar(speed * dt);
+  let nextX = player.position.clone().add(new THREE.Vector3(deltaMove.x, 0, 0));
+  if (!collide(nextX)) player.position.x = nextX.x;
   
-  // Som de passos
+  let nextZ = player.position.clone().add(new THREE.Vector3(0, 0, deltaMove.z));
+  if (!collide(nextZ)) player.position.z = nextZ.z;
+  
+  // Som de passos e animação de pernas
   if (mv.length() > 0.1) {
-    footstepTimer -= dt * (sprint ? 2.2 : crouching ? 0.8 : 1.4);
+    footstepTimer -= dt * (sprint ? 2.3 : crouching ? 0.7 : 1.3);
     if (footstepTimer <= 0) {
-      audio.playFootstep(sprint ? 1.4 : crouching ? 0.6 : 1.0);
+      if (!crouching) audio.playFootstep(sprint ? 1.4 : 1.0);
       footstepTimer = 0.5;
     }
     let a = Math.atan2(mv.x, mv.z);
     player.rotation.y += Math.atan2(Math.sin(a - player.rotation.y), Math.cos(a - player.rotation.y)) * Math.min(1, dt*10);
-    for (let i=0; i<2; i++) legs[i].rotation.x = Math.sin(t*(sprint?14:9)+(i?Math.PI:0)) * 0.5;
+    for (let i=0; i<2; i++) legs[i].rotation.x = Math.sin(t*(sprint?14:8)+(i?Math.PI:0)) * (crouching?0.2:0.5);
   }
   
-  // Animação de lâmpadas oscilantes
+  // Piscar de luzes dos geradores
   for (let l of ceilingLamps) {
     l.flickerTimer += dt;
     if (generatorFixed && l.baseOn) {
-      l.light.intensity = 1.2 + Math.sin(l.flickerTimer*15)*0.15;
+      l.light.intensity = 1.4 + Math.sin(l.flickerTimer*12)*0.12;
     }
   }
   
@@ -880,9 +952,9 @@ function update(dt, t) {
     e.roarCd -= dt;
     let d = e.g.position.distanceTo(player.position);
     
-    // Percepção baseada em luz e ruído (furtividade)
-    let detectDist = crouching ? 4.5 : sprint ? 12.0 : 8.0;
-    if (flash) detectDist += 3.0;
+    // Percepção de Furtividade: Agachar reduz a distância de detecção!
+    let detectDist = crouching ? 3.8 : sprint ? 13.0 : 8.5;
+    if (flash) detectDist += 3.5;
     
     if (d < detectDist) {
       if (e.state !== 'chase' && e.roarCd <= 0) {
@@ -911,22 +983,22 @@ function update(dt, t) {
       e.g.rotation.y = Math.atan2(dir.x, dir.z);
     }
     
-    // Ataque do infectado
-    if (d < 1.3 && e.attackCd <= 0) {
-      e.attackCd = 1.1;
-      hp = Math.max(0, hp - 22);
-      hitFlash = 0.4;
+    // Ataque do monstro
+    if (d < 1.35 && e.attackCd <= 0) {
+      e.attackCd = 1.0;
+      hp = Math.max(0, hp - 24);
+      hitFlash = 0.45;
       audio.playHurt();
       toast('UM INFECTADO ATACOU VOCÊ!');
-      if (navigator.vibrate) navigator.vibrate([60, 40, 80]);
+      if (navigator.vibrate) navigator.vibrate([70, 40, 90]);
       if (hp <= 0) document.getElementById('death').classList.remove('hidden');
     }
   }
   
-  // Prompt de interação
+  // Prompt de Interação Próxima
   let nearest = interactives.filter(o => !o.used).sort((a,b) => a.mesh.position.distanceTo(player.position) - b.mesh.position.distanceTo(player.position))[0];
   let pr = document.getElementById('prompt');
-  if (nearest && nearest.mesh.position.distanceTo(player.position) < 2.4) {
+  if (nearest && nearest.mesh.position.distanceTo(player.position) < 2.5) {
     pr.style.display = 'block';
     pr.textContent = '✋ ' + nearest.prompt;
   } else pr.style.display = 'none';
@@ -940,21 +1012,21 @@ function update(dt, t) {
   hitFlash = Math.max(0, hitFlash - dt);
   document.getElementById('damage').style.opacity = hitFlash;
   
-  // Batimento cardíaco visual para baixa vida
+  // Batimento cardíaco visual
   if (hp < 35) {
     heartbeatTimer += dt * 4;
-    document.getElementById('heartbeat-border').style.boxShadow = `inset 0 0 ${20 + Math.sin(heartbeatTimer)*25}px rgba(200,0,0,0.6)`;
+    document.getElementById('heartbeat-border').style.boxShadow = `inset 0 0 ${20 + Math.sin(heartbeatTimer)*25}px rgba(220,0,0,0.65)`;
   } else {
     document.getElementById('heartbeat-border').style.boxShadow = 'none';
   }
   
-  flashlight.intensity = flash ? 5.2 + Math.sin(t*20)*0.1 : 0;
+  flashlight.intensity = flash ? 8.5 + Math.sin(t*18)*0.2 : 0;
   
-  // Posicionamento de Câmera suave
-  let camDist = crouching ? 5.8 : 6.8;
-  let desired = player.position.clone().add(new THREE.Vector3(Math.sin(camYaw)*camDist, 3.4 + camPitch*2.0, Math.cos(camYaw)*camDist));
+  // Câmera e Lanterna alinhados
+  let camDist = crouching ? 5.2 : 6.4;
+  let desired = player.position.clone().add(new THREE.Vector3(Math.sin(camYaw)*camDist, camCurrentHeight + camPitch*1.8, Math.cos(camYaw)*camDist));
   camera.position.lerp(desired, Math.min(1, dt*9));
-  camera.lookAt(player.position.clone().add(new THREE.Vector3(0, 1.3 + camPitch*1.6, 0)));
+  camera.lookAt(player.position.clone().add(new THREE.Vector3(0, camCurrentHeight*0.65 + camPitch*1.5, 0)));
 }
 
 function startGame(e) {
@@ -963,17 +1035,17 @@ function startGame(e) {
   const menu = document.getElementById('menu');
   menu.classList.add('hidden');
   playing = true;
-  story('O DESPERTAR', 'Você acorda na ala de emergência. As luzes estão apagas e os corredores cheiram a ferrugem e sangue. Encontre uma saída antes que o que sobrou neste hospital encontre você.');
+  story('O DESPERTAR', 'Você acorda na recepção da emergência. O ar está pesado e fumaça fria sai dos dutos de ventilação. Encontre um caminho para sair daqui antes que as coisas na escuridão cheguem até você.');
 }
 document.getElementById('start').onclick = startGame;
 
-// Suporte para Teclado (Desktop)
+// Suporte para Teclado Desktop
 addEventListener('keydown', e => {
   if (e.code === 'KeyF') setFlash(!flash);
   if (e.code === 'KeyE') action();
   if (e.code === 'Digit1') useMedkit();
-  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') running = true;
-  if (e.code === 'ControlLeft' || e.code === 'KeyC') crouching = !crouching;
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') { if (!crouching) running = true; }
+  if (e.code === 'ControlLeft' || e.code === 'KeyC') toggleCrouch();
   if (e.code === 'KeyW') joy.y = -1;
   if (e.code === 'KeyS') joy.y = 1;
   if (e.code === 'KeyA') joy.x = -1;
