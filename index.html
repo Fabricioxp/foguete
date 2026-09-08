@@ -2,1081 +2,837 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>O HOSPITAL — CAPÍTULO 1 (REFORMULADO)</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020403;font-family:'Rajdhani',sans-serif;color:#e2e8e4}
-canvas{position:fixed;inset:0;width:100%!important;height:100%!important;z-index:1}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>The Last Echoes - Survival Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Roboto:wght@400;700&display=swap');
 
-#rotate{display:none;position:fixed;inset:0;z-index:100;background:#020403;align-items:center;justify-content:center;text-align:center;padding:25px}
-@media(orientation:portrait){#rotate{display:flex}}
+        :root {
+            --hud-bg: rgba(15, 20, 25, 0.4);
+            --hud-border: rgba(255, 255, 255, 0.15);
+            --hud-active: rgba(255, 255, 255, 0.35);
+        }
 
-#menu,#story,#puzzle,#death,#ending{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(2,4,3,0.92);backdrop-filter:blur(10px)}
-.card{width:min(92vw,600px);padding:32px;border:1px solid #2e4237;background:rgba(8,14,11,0.96);box-shadow:0 25px 80px rgba(0,0,0,0.95), inset 0 0 20px rgba(45,80,60,0.12);text-align:center;border-radius:6px;position:relative;overflow:hidden}
-.card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#3e7054,transparent)}
-h1{font-family:'Share Tech Mono',monospace;letter-spacing:6px;margin:0 0 10px;font-size:clamp(24px,5vw,42px);color:#d1e0d7;text-shadow:0 0 16px rgba(100,200,140,0.25)}
-h2{font-family:'Share Tech Mono',monospace;letter-spacing:3px;margin:0 0 12px;color:#8cbfa2}
-p{font-size:15px;line-height:1.65;color:#a3b5aa;margin-bottom:20px}
+        * {
+            box-sizing: border-box;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
 
-button{border:1px solid #3d5446;background:linear-gradient(180deg,#19261f,#0c1410);color:#e2ece5;padding:14px 28px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;cursor:pointer;transition:all .18s ease;box-shadow:0 6px 20px rgba(0,0,0,0.6);border-radius:4px}
-button:hover{border-color:#658c74;background:linear-gradient(180deg,#22362b,#121d17);color:#fff;box-shadow:0 0 14px rgba(80,150,110,0.35)}
-button:active{transform:scale(0.96)}
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #030508; overflow: hidden;
+            font-family: 'Roboto', sans-serif;
+        }
 
-#damage{position:fixed;inset:0;z-index:35;pointer-events:none;background:radial-gradient(circle,transparent 30%,rgba(200,15,15,0.7));opacity:0;transition:opacity .12s}
-#heartbeat-border{position:fixed;inset:0;z-index:34;pointer-events:none;box-shadow:inset 0 0 60px rgba(220,0,0,0);transition:box-shadow .2s}
+        #gameCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block;
+            z-index: 1;
+        }
 
-#crosshair{position:fixed;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);z-index:12;pointer-events:none;opacity:.75}
-#crosshair:before,#crosshair:after{content:"";position:absolute;background:#a2c4b0}
-#crosshair:before{width:2px;height:12px;left:5px;top:0}
-#crosshair:after{height:2px;width:12px;left:0;top:5px}
+        /* Efeito de Dano e Vinheta Escura */
+        #vignette {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            pointer-events: none; z-index: 3;
+        }
 
-#hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:calc(12px + env(safe-area-inset-top)) 16px 16px}
-#top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.panel{background:rgba(4,8,6,0.88);border:1px solid rgba(60,90,72,0.4);padding:10px 14px;font-size:12px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;backdrop-filter:blur(6px);border-radius:4px;box-shadow:0 4px 18px rgba(0,0,0,0.6)}
-#objective{position:absolute;top:70px;left:50%;transform:translateX(-50%);max-width:70%;text-align:center;color:#b2cbbe;border-color:rgba(80,130,102,0.4);font-size:13px}
-.bar{width:130px;height:7px;background:#101713;margin-top:5px;border:1px solid rgba(255,255,255,0.12);border-radius:3px;overflow:hidden}
-.fill{height:100%;transition:width .15s ease}
-#hpfill{background:linear-gradient(90deg,#992222,#e64a4a)}
-#stfill{background:linear-gradient(90deg,#216b49,#3ebd82)}
+        #damage-flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(150, 0, 0, 0); pointer-events: none;
+            transition: background 0.15s ease-out; z-index: 4;
+        }
 
-#crouch-badge{display:none;position:absolute;bottom:185px;left:50%;transform:translateX(-50%);background:rgba(20,40,30,0.9);border:1px solid #4a8264;color:#7ee0a9;padding:4px 12px;font-size:11px;font-family:'Share Tech Mono',monospace;border-radius:12px;letter-spacing:1px}
-#crouch-badge.active{display:block}
+        /* Barra de Vida Ultra Minimalista */
+        #health-container {
+            position: absolute; top: 25px; left: 25px;
+            width: 120px; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 3px; z-index: 10; opacity: 0; transition: opacity 0.4s;
+            overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
+        }
+        #health-fill {
+            width: 100%; height: 100%; background: #c22; border-radius: 2px;
+            transition: width 0.2s;
+        }
 
-#prompt{position:absolute;bottom:135px;left:50%;transform:translateX(-50%);display:none;padding:10px 22px;background:rgba(4,8,6,0.95);border:1px solid #4d7a60;border-radius:20px;font-size:13px;font-family:'Share Tech Mono',monospace;color:#d7e8de;box-shadow:0 0 20px rgba(0,0,0,0.9), 0 0 10px rgba(70,130,95,0.3)}
+        /* Diálogos / Legendas da História */
+        #story-box {
+            position: absolute; top: 18%; width: 100%; text-align: center;
+            color: rgba(230, 235, 240, 0.95); font-family: 'Cinzel', serif;
+            font-size: 1.3rem; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+            opacity: 0; transition: opacity 1s ease-in-out; pointer-events: none; z-index: 10;
+            padding: 0 20px;
+        }
 
-#inventory-bar{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:10px;pointer-events:auto}
-.inv-slot{width:42px;height:42px;background:rgba(6,10,8,0.85);border:1px solid rgba(70,100,80,0.4);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;cursor:pointer}
-.inv-slot.active{border-color:#48b87c;box-shadow:0 0 10px rgba(72,184,124,0.4)}
-.inv-count{position:absolute;bottom:1px;right:4px;font-size:10px;font-family:'Share Tech Mono',monospace;color:#a8c4b4}
+        /* HUD Estilo Gamepad Minimalista Mobile */
+        #hud-layer {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 160px;
+            pointer-events: none; z-index: 20; display: flex; justify-content: space-between;
+            padding: 0 25px 25px 25px; box-sizing: border-box;
+        }
 
-#controls{position:fixed;inset:0;z-index:20;pointer-events:none}
-#joy{position:absolute;left:24px;bottom:24px;width:130px;height:130px;border:2px solid rgba(100,140,120,0.3);border-radius:50%;pointer-events:auto;background:rgba(8,14,11,0.4);backdrop-filter:blur(3px)}
-#stick{position:absolute;width:56px;height:56px;left:35px;top:35px;border-radius:50%;background:rgba(120,170,140,0.4);border:1px solid rgba(255,255,255,0.5)}
-#look{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto}
-#buttons{position:absolute;right:20px;bottom:22px;display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
-.ctrl{width:64px;height:64px;border-radius:50%;padding:4px;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;background:rgba(8,14,11,0.88);border:1px solid #3d5446;color:#d5e3da;box-shadow:0 6px 20px rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center}
-.ctrl:active,.ctrl.active{background:#20382b;border-color:#659e7b}
-.ctrl.main{width:80px;height:80px;border-color:#507860;background:rgba(14,24,19,0.94);font-size:12px}
-#flash.active{border-color:#7ee0a9;box-shadow:0 0 15px rgba(126,224,169,0.4)}
+        .hud-group { pointer-events: auto; display: flex; gap: 14px; align-items: flex-end; }
 
-#toast{position:fixed;z-index:40;top:18%;left:50%;transform:translateX(-50%);opacity:0;transition:all .25s ease;background:rgba(4,8,6,0.96);border:1px solid #4a755d;padding:12px 24px;font-size:13px;font-family:'Share Tech Mono',monospace;max-width:85%;text-align:center;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,0.9);color:#d0e3d8}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(6px)}
+        .btn {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: var(--hud-bg); border: 1px solid var(--hud-border);
+            color: rgba(255,255,255,0.7); font-size: 22px;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transition: transform 0.1s, background 0.1s, color 0.1s;
+        }
+        .btn:active, .btn.active {
+            background: var(--hud-active); color: #fff; transform: scale(0.92);
+        }
 
-.choice-btn{width:100%;margin-top:10px;text-align:left;display:flex;justify-content:space-between;align-items:center}
-.hidden{display:none!important}
-</style>
+        /* Cluster de Ações Direito */
+        .right-cluster {
+            display: grid; grid-template-columns: 64px 64px; grid-template-rows: 64px 64px; gap: 10px;
+        }
+        #btn-jump { grid-column: 2; grid-row: 1; }
+        #btn-action { grid-column: 1; grid-row: 2; font-size: 20px; }
+        #btn-crouch { grid-column: 2; grid-row: 2; font-size: 18px; }
+
+        /* Telas de Fim de Jogo (Morte / Vitória) */
+        .screen-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 3, 5, 0.92); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+            opacity: 0; pointer-events: none; transition: opacity 1s; z-index: 50;
+        }
+        .screen-overlay h1 { font-family: 'Cinzel', serif; font-size: 2.5rem; letter-spacing: 4px; margin-bottom: 10px; color: #a22; }
+        .screen-overlay p { font-size: 1.1rem; color: #aaa; letter-spacing: 1px; margin-bottom: 30px; }
+        .screen-overlay button {
+            padding: 14px 36px; font-size: 1rem; background: transparent;
+            border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 4px;
+            cursor: pointer; font-family: 'Cinzel', serif; letter-spacing: 2px;
+            transition: 0.3s;
+        }
+        .screen-overlay button:active { background: white; color: black; }
+
+        @media (min-width: 1024px) {
+            #hud-layer { display: none; } /* Esconde gamepad virtual em desktops */
+        }
+    </style>
 </head>
 <body>
 
-<div id="rotate"><div><h2>GIRE O DISPOSITIVO</h2><p>Este jogo foi desenvolvido para o modo paisagem (horizontal).</p></div></div>
-<div id="game"></div>
-<div id="damage"></div>
-<div id="heartbeat-border"></div>
-<div id="crosshair"></div>
+<canvas id="gameCanvas"></canvas>
+<div id="vignette"></div>
+<div id="damage-flash"></div>
+<div id="health-container"><div id="health-fill"></div></div>
+<div id="story-box"></div>
 
-<div id="hud">
- <div id="top">
-   <div class="panel">
-     <b id="room">TRIAGEM DE EMERGÊNCIA</b><br>
-     <span id="chapter" style="color:#6d8c7b;font-size:10px">CAPÍTULO 1 — O DESPERTAR</span>
-   </div>
-   <div id="inventory-bar">
-     <div class="inv-slot" id="slot-medkit" title="Kit Médico">🩹<span class="inv-count" id="medkit-count">0</span></div>
-     <div class="inv-slot" id="slot-key" title="Chave da Farmácia">🔑</div>
-     <div class="inv-slot" id="slot-card" title="Cartão Master">💳</div>
-   </div>
-   <div class="panel">
-     SAÚDE <span id="hp">100%</span><div class="bar"><div class="fill" id="hpfill" style="width:100%"></div></div>
-     ENERGIA <span id="st">100%</span><div class="bar"><div class="fill" id="stfill" style="width:100%"></div></div>
-   </div>
- </div>
- <div id="crouch-badge">🤫 SILENCIOSO / AGACHADO</div>
- <div id="objective" class="panel">OBJETIVO: Investigue o prontuário no balcão de triagem.</div>
- <div id="prompt"></div>
+<!-- Controles Virtuais Mobile -->
+<div id="hud-layer">
+    <div class="hud-group">
+        <div class="btn" id="btn-left">◀</div>
+        <div class="btn" id="btn-right">▶</div>
+    </div>
+    <div class="hud-group right-cluster">
+        <div class="btn" id="btn-jump">▲</div>
+        <div class="btn" id="btn-action">⚡</div>
+        <div class="btn" id="btn-crouch">▼</div>
+    </div>
 </div>
 
-<div id="toast"></div>
-
-<div id="controls">
- <div id="joy"><div id="stick"></div></div>
- <div id="look"></div>
- <div id="buttons">
-   <button class="ctrl" id="crouch">⬇<br>AGACHAR</button>
-   <button class="ctrl" id="run">🏃<br>CORRER</button>
-   <button class="ctrl active" id="flash">🔦<br>LANTERNA</button>
-   <button class="ctrl main" id="action">✋<br>INTERAGIR</button>
- </div>
+<div id="screen-death" class="screen-overlay">
+    <h1>INFECTADO</h1>
+    <p>Sua jornada terminou nas sombras.</p>
+    <button onclick="location.reload()">Tentar Novamente</button>
 </div>
 
-<!-- MODALS -->
-<div id="menu">
-  <div class="card">
-    <h1>O HOSPITAL</h1>
-    <p style="letter-spacing:2px;color:#6b8777;font-size:12px;margin-top:-10px">CAPÍTULO 1 — O DESPERTAR (EDIÇÃO DEFINITIVA)</p>
-    <p>Você acorda sozinho em uma ala hospitalar abandonada. As luzes falharam e criaturas famintas vagam pelos corredores escuros.</p>
-    <p style="font-size:12px;color:#7e9e8c">💡 Controles: Use WASD / Joystick para mover, F para Lanterna, C para Agachar (movimento silencioso) e E / ✋ para Interagir.</p>
-    <button id="start">ENTRAR NO HOSPITAL</button>
-  </div>
-</div>
-
-<div id="story" class="hidden">
-  <div class="card">
-    <h2 id="storyTitle"></h2>
-    <p id="storyText"></p>
-    <button id="storyNext">CONTINUAR</button>
-  </div>
-</div>
-
-<div id="puzzle" class="hidden">
-  <div class="card">
-    <h2 id="puzzleTitle">GERADOR DE EMERGÊNCIA</h2>
-    <p id="puzzleText"></p>
-    <div id="puzzleChoices"></div>
-  </div>
-</div>
-
-<div id="death" class="hidden">
-  <div class="card">
-    <h1 style="color:#e64a4a">VOCÊ FOI PEGO</h1>
-    <p>A escuridão do hospital devorou você.</p>
-    <button onclick="location.reload()">REINICIAR CAPÍTULO</button>
-  </div>
-</div>
-
-<div id="ending" class="hidden">
-  <div class="card">
-    <h1 style="color:#3ebd82">FIM DO CAPÍTULO 1</h1>
-    <p id="endingText"></p>
-    <button onclick="location.reload()">JOGAR NOVAMENTE</button>
-  </div>
+<div id="screen-win" class="screen-overlay">
+    <h1 style="color: #4a8;">ZONA SEGURA</h1>
+    <p>Você encontrou a luz do amanhecer.</p>
+    <button onclick="location.reload()">Jogar Novamente</button>
 </div>
 
 <script>
-class SoundEngine {
-  constructor() {
-    this.ctx = null;
-    this.initialized = false;
-  }
-  init() {
-    if (this.initialized) return;
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.initialized = true;
-      this.startAmbient();
-    } catch(e) {}
-  }
-  playFootstep(speedMultiplier = 1) {
-    if (!this.initialized) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const filter = this.ctx.createBiquadFilter();
-    
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(160 * speedMultiplier, this.ctx.currentTime);
-    
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(50 + Math.random()*20, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + 0.1);
-    
-    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
-    
-    osc.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.11);
-  }
-  playFlash() {
-    if (!this.initialized) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(900, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(350, this.ctx.currentTime + 0.04);
-    gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.05);
-  }
-  playPickup() {
-    if (!this.initialized) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(587.33, now);
-    osc.frequency.setValueAtTime(880, now + 0.08);
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(now + 0.23);
-  }
-  playHeal() {
-    if (!this.initialized) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.exponentialRampToValueAtTime(650, now + 0.3);
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(now + 0.36);
-  }
-  playDoor() {
-    if (!this.initialized) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(110, now);
-    osc.frequency.linearRampToValueAtTime(70, now + 0.4);
-    gain.gain.setValueAtTime(0.12, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(now + 0.46);
-  }
-  playHurt() {
-    if (!this.initialized) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(160, now);
-    osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(now + 0.26);
-  }
-  playMonsterRoar() {
-    if (!this.initialized) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(80, now);
-    osc.frequency.linearRampToValueAtTime(130, now + 0.2);
-    osc.frequency.linearRampToValueAtTime(40, now + 0.6);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(now + 0.66);
-  }
-  playPuzzleBeep(success=true) {
-    if (!this.initialized) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(success ? 880 : 220, now);
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-    osc.stop(now + 0.21);
-  }
-  startAmbient() {
-    if (!this.initialized) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(45, this.ctx.currentTime);
-    gain.gain.setValueAtTime(0.025, this.ctx.currentTime);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start();
-  }
-}
-const audio = new SoundEngine();
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
 
-const container = document.getElementById('game');
-const scene = new THREE.Scene();
-const clock = new THREE.Clock();
+    // Canvas de Background Parallax pré-renderizado para máxima performance
+    const bgCanvas = document.createElement('canvas');
+    const bgCtx = bgCanvas.getContext('2d');
 
-scene.background = new THREE.Color(0x020403);
-scene.fog = new THREE.FogExp2(0x020403, 0.045);
+    let W, H;
+    const TILE_SIZE = 48;
+    const GRAVITY = 0.58;
+    const FRICTION = 0.82;
+    const TERMINAL_VELOCITY = 14;
 
-const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 120);
-scene.add(camera);
+    let camera = { x: 0, y: 0, shake: 0 };
+    let gameState = 'playing'; // playing, dead, win
+    let frameCount = 0;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-container.appendChild(renderer.domElement);
+    const keys = { left: false, right: false, up: false, crouch: false, action: false };
 
-// Luz ambiente muito suave para manter o clima de terror
-const ambientLight = new THREE.HemisphereLight(0x283830, 0x010302, 0.25);
-scene.add(ambientLight);
-
-// Flashlight SpotLight setup
-const flashlight = new THREE.SpotLight(0xfffaed, 8.5, 35, Math.PI/5.5, 0.45, 1.2);
-flashlight.castShadow = true;
-flashlight.shadow.mapSize.set(512, 512);
-flashlight.shadow.camera.near = 0.3;
-flashlight.shadow.camera.far = 35;
-
-const flashlightTarget = new THREE.Object3D();
-flashlightTarget.position.set(0, 0, -10);
-
-camera.add(flashlight);
-camera.add(flashlightTarget);
-flashlight.target = flashlightTarget;
-flashlight.position.set(0.2, -0.2, 0);
-
-// Volumetric Light Cone Effect (Feixe Visível de Luz)
-const coneGeo = new THREE.CylinderGeometry(0.08, 2.2, 14, 16, 1, true);
-coneGeo.rotateX(-Math.PI/2);
-coneGeo.translate(0, 0, -7);
-const coneMat = new THREE.MeshBasicMaterial({
-  color: 0xddf4e8,
-  transparent: true,
-  opacity: 0.16,
-  side: THREE.DoubleSide,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false
-});
-const flashlightCone = new THREE.Mesh(coneGeo, coneMat);
-camera.add(flashlightCone);
-
-function makeTex(bgColor, detailColor, pattern='noise') {
-  const c = document.createElement('canvas');
-  c.width = c.height = 256;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0,0,256,256);
-  
-  if (pattern === 'tiles') {
-    ctx.strokeStyle = detailColor;
-    ctx.lineWidth = 3;
-    for (let i=0; i<=256; i+=64) {
-      ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(256,i); ctx.stroke();
+    function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+        
+        bgCanvas.width = W + 500;
+        bgCanvas.height = H;
+        buildParallaxBackground();
     }
-  } else if (pattern === 'stripes') {
-    ctx.fillStyle = detailColor;
-    for (let i=0; i<256; i+=16) ctx.fillRect(i,0,8,256);
-  }
-  
-  ctx.fillStyle = detailColor;
-  for (let i=0; i<900; i++) {
-    ctx.globalAlpha = Math.random() * 0.15;
-    ctx.fillRect(Math.random()*256, Math.random()*256, 1+Math.random()*4, 1+Math.random()*4);
-  }
-  ctx.globalAlpha = 1;
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  return t;
-}
+    window.addEventListener('resize', resize);
 
-const floorMat = new THREE.MeshStandardMaterial({ map: makeTex('#222623', '#0e120f', 'tiles'), roughness: 0.7, metalness: 0.1 });
-floorMat.map.repeat.set(12,12);
-const wallMat = new THREE.MeshStandardMaterial({ map: makeTex('#465249', '#1d2620', 'noise'), roughness: 0.85 });
-const trimMat = new THREE.MeshStandardMaterial({ color: 0x1f2b23, roughness: 0.6 });
-const metalMat = new THREE.MeshStandardMaterial({ color: 0x3d4842, roughness: 0.3, metalness: 0.7 });
-const darkMat = new THREE.MeshStandardMaterial({ color: 0x121714, roughness: 0.9 });
-const glassMat = new THREE.MeshStandardMaterial({ color: 0x739988, transparent: true, opacity: 0.3, roughness: 0.1 });
-const bloodMat = new THREE.MeshStandardMaterial({ color: 0x540606, roughness: 0.2, metalness: 0.1 });
+    // Mapeamento de Controles Touch e Mouse
+    function setupButton(id, keyName) {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const down = (e) => { e.preventDefault(); keys[keyName] = true; el.classList.add('active'); };
+        const up = (e) => { e.preventDefault(); keys[keyName] = false; el.classList.remove('active'); };
+        
+        el.addEventListener('touchstart', down, {passive: false});
+        el.addEventListener('touchend', up, {passive: false});
+        el.addEventListener('touchcancel', up, {passive: false});
+        el.addEventListener('mousedown', down);
+        el.addEventListener('mouseup', up);
+        el.addEventListener('mouseleave', up);
+    }
 
-const colliders = [];
-const interactives = [];
-const enemies = [];
-const rooms = [];
-const doors = [];
+    setupButton('btn-left', 'left');
+    setupButton('btn-right', 'right');
+    setupButton('btn-jump', 'up');
+    setupButton('btn-crouch', 'crouch');
+    setupButton('btn-action', 'action');
 
-const player = new THREE.Group();
-player.position.set(0, 0, -26);
-scene.add(player);
+    window.addEventListener('keydown', (e) => {
+        if(e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+        if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+        if(e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') keys.up = true;
+        if(e.code === 'ArrowDown' || e.code === 'KeyS' || e.code === 'ShiftLeft') keys.crouch = true;
+        if(e.code === 'KeyE' || e.code === 'Enter') keys.action = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if(e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+        if(e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+        if(e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') keys.up = false;
+        if(e.code === 'ArrowDown' || e.code === 'KeyS' || e.code === 'ShiftLeft') keys.crouch = false;
+        if(e.code === 'KeyE' || e.code === 'Enter') keys.action = false;
+    });
 
-const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.05, 0.45), new THREE.MeshStandardMaterial({color: 0x1d2922}));
-torso.position.y = 1.25;
-player.add(torso);
+    // MAPA EXTENSO ESTILO MARIO / METROIDVANIA TLD
+    // # = Parede, . = Vazio, ^ = Espinho, B = Caixa de Puzzle, S = Gerador/Switch, D = Porta Fechada
+    // C = Clicker (Cego/Letal), R = Runner (Rápido), E = Saída, F = Ninho de Esporos
+    const levelLayout = [
+        "#################################################################################################################################################################",
+        "#.F...................................................................F.........................................................................................#",
+        "#...............................................................................................................................................................#",
+        "#...................................................................................................................#...........................................#",
+        "#...................................................................................................................#...........................................#",
+        "###.......................#....................................F.......................D........#####################........E..................................#",
+        "#.........................#...BBBB.....................#####...D.....###..##...........D................F...........#.......##..................................#",
+        "#..P....#######...........#...####.........######......#.......D.......#...#...S.......D............................#.......##..................................#",
+        "#.......#.....#...........#........C.......#....#......#.......#.......#...#...#.......#................C...........#.......##.......R........................#",
+        "#########.....#############........#########....########.......#########...#####.......##############################.......###################################",
+        "#################################################################################################################################################################"
+    ];
 
-const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshStandardMaterial({color: 0x9c7965}));
-head.position.y = 2.02;
-player.add(head);
+    let map = [];
+    let mapRows = levelLayout.length;
+    let mapCols = levelLayout[0].length;
+    let mapObjects = [];
+    let entities = [];
+    let particles = [];
+    let spores = [];
+    let player = null;
 
-const legs = [];
-for (let x of [-0.22, 0.22]) {
-  let m = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.8, 0.26), new THREE.MeshStandardMaterial({color: 0x151c17}));
-  m.position.set(x, 0.4, 0);
-  player.add(m);
-  legs.push(m);
-}
+    function parseMap() {
+        for(let r=0; r<mapRows; r++){
+            map[r] = [];
+            for(let c=0; c<mapCols; c++){
+                let char = levelLayout[r][c];
+                let px = c * TILE_SIZE;
+                let py = r * TILE_SIZE;
+                map[r][c] = 0;
 
-function box(x, y, z, w, h, d, mat=wallMat, collide=true) {
-  let m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-  m.position.set(x, y, z);
-  m.castShadow = m.receiveShadow = true;
-  scene.add(m);
-  if (collide) colliders.push({x1: x-w/2, x2: x+w/2, z1: z-d/2, z2: z+d/2});
-  return m;
-}
-
-function floor(x, z, w, d) {
-  let m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), floorMat);
-  m.rotation.x = -Math.PI/2;
-  m.position.set(x, 0.01, z);
-  m.receiveShadow = true;
-  scene.add(m);
-}
-
-function wall(x, z, w, d) {
-  box(x, 2.7, z, w, 5.4, d, wallMat, true);
-  // Rodapé decorativo realista para a parede
-  if (w > d) box(x, 0.15, z, w, 0.3, d + 0.1, trimMat, false);
-  else box(x, 0.15, z, w + 0.1, 0.3, d, trimMat, false);
-}
-
-function collide(p, r=0.45) {
-  return colliders.some(c => {
-    const px = Math.max(c.x1, Math.min(p.x, c.x2));
-    const pz = Math.max(c.z1, Math.min(p.z, c.z2));
-    const dx = p.x - px, dz = p.z - pz;
-    return (dx*dx + dz*dz) < (r*r);
-  });
-}
-
-const ceilingLamps = [];
-function lamp(x, z, on=true) {
-  let l = new THREE.PointLight(on ? 0x9bc2ab : 0x4a1818, on ? 1.4 : 0.2, 14);
-  l.position.set(x, 4.8, z);
-  scene.add(l);
-  box(x, 5.0, z, 0.8, 0.1, 1.6, metalMat, false);
-  ceilingLamps.push({ light: l, baseOn: on, flickerTimer: Math.random()*10 });
-  return l;
-}
-
-function doorMesh(x, z, w, d, angle=0) {
-  let pivot = new THREE.Group();
-  pivot.position.set(x - w/2, 0, z);
-  let dMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 2.8, d), metalMat);
-  dMesh.position.set(w/2, 1.4, 0);
-  dMesh.castShadow = true;
-  
-  // Maçaneta da porta
-  let handle = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.3), new THREE.MeshStandardMaterial({color: 0xc0c0c0, metalness:0.9}));
-  handle.position.set(w * 0.85, 1.3, 0.1);
-  dMesh.add(handle);
-  
-  pivot.add(dMesh);
-  scene.add(pivot);
-  
-  // Eucatex / Marco da Porta
-  box(x - w/2, 1.4, z, 0.15, 2.9, d + 0.1, trimMat, false);
-  box(x + w/2, 1.4, z, 0.15, 2.9, d + 0.1, trimMat, false);
-  
-  let doorObj = { pivot, open: false, targetAngle: angle };
-  doors.push(doorObj);
-  return doorObj;
-}
-
-function sign(x, z, text, glowColor="#7ee0a9") {
-  const c = document.createElement('canvas');
-  c.width = 512; c.height = 128;
-  const q = c.getContext('2d');
-  q.fillStyle = '#0a120e'; q.fillRect(0,0,512,128);
-  q.strokeStyle = glowColor; q.lineWidth = 6; q.strokeRect(6,6,500,116);
-  q.fillStyle = glowColor; q.font = 'bold 36px Rajdhani'; q.textAlign = 'center';
-  q.fillText(text, 256, 75);
-  let sp = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), transparent: true}));
-  sp.position.set(x, 3.8, z);
-  sp.scale.set(3.8, 0.95, 1);
-  scene.add(sp);
-}
-
-function addRoom(name, x, z, w, d) {
-  rooms.push({name, x, z, w, d});
-  floor(x, z, w, d);
-}
-
-// Layout Sensato de Hospital Real
-addRoom('TRIAGEM DE EMERGÊNCIA', 0, -25, 12, 22);
-addRoom('RECEPÇÃO PRINCIPAL', 0, -5, 22, 14);
-addRoom('CORREDOR CENTRAL', 0, 12, 12, 20);
-addRoom('FARMÁCIA E INSUMOS', -16, 10, 18, 18);
-addRoom('SALA DE CONSULTAS', 16, 10, 16, 14);
-addRoom('UTI WARD - TERAPIA INTENSIVA', -16, 30, 18, 18);
-addRoom('MANUTENÇÃO E GERADOR', 16, 30, 16, 18);
-addRoom('PORTA DE SAÍDA DE EMERGÊNCIA', 0, 42, 14, 12);
-
-// Paredes estruturais externas e internas
-wall(0, -36, 12, 0.5); wall(-6, -25, 0.5, 22); wall(6, -25, 0.5, 22);
-wall(-11, -12, 10, 0.5); wall(11, -12, 10, 0.5);
-wall(-11, 2, 0.5, 14); wall(11, 2, 0.5, 14);
-wall(-6, 2, 10, 0.5); wall(6, 2, 10, 0.5);
-wall(-11, 12, 0.5, 18); wall(11, 12, 0.5, 18);
-wall(-6, 22, 10, 0.5); wall(6, 22, 10, 0.5);
-wall(-11, 32, 0.5, 18); wall(11, 32, 0.5, 18);
-wall(0, 48, 14, 0.5); wall(-7, 42, 0.5, 12); wall(7, 42, 0.5, 12);
-
-wall(-25, 10, 0.5, 18); wall(-18, 1, 14, 0.5); wall(-18, 19, 14, 0.5);
-wall(24, 10, 0.5, 14); wall(17, 3, 14, 0.5); wall(17, 17, 14, 0.5);
-wall(-25, 30, 0.5, 18); wall(-18, 21, 14, 0.5); wall(-18, 39, 14, 0.5);
-wall(24, 30, 0.5, 18); wall(17, 21, 14, 0.5); wall(17, 39, 14, 0.5);
-
-// Lâmpadas do teto
-for (let z=-29; z<45; z+=10) lamp(0, z, z!==12);
-sign(0, -31, 'EMERGÊNCIA'); sign(0, -8, 'RECEPÇÃO'); sign(-16, 3, 'FARMÁCIA');
-sign(16, 5, 'CONSULTÓRIO'); sign(-16, 23, 'UTI INTENSIVA'); sign(16, 23, 'GERADOR');
-
-// Camas Macas de Hospital Detalhadas
-function gurney(x, z) {
-  box(x, 0.65, z, 2.2, 0.3, 4.2, metalMat, true); // Estrutura metal
-  box(x, 0.95, z, 2.0, 0.35, 3.9, darkMat, false); // Colchão
-  box(x, 1.8, z-1.8, 2.2, 1.5, 0.15, metalMat, false); // Encosto
-  // Suporte de Soro (IV Drip Stand)
-  box(x+0.9, 1.6, z-1.4, 0.08, 3.0, 0.08, metalMat, false);
-  box(x+0.9, 3.0, z-1.4, 0.4, 0.1, 0.08, metalMat, false);
-  // Bolsa de Soro
-  box(x+0.8, 2.7, z-1.4, 0.2, 0.4, 0.15, glassMat, false);
-}
-
-for (let x of [-18, -14]) for (let z of [6, 13]) gurney(x, z);
-for (let x of [-18, -14]) for (let z of [26, 33]) gurney(x, z);
-
-// Balcão de Recepção
-box(0, 0.75, -10, 6.0, 1.5, 1.2, trimMat, true);
-// Computador da Recepção
-box(-1.2, 1.8, -10, 0.8, 0.6, 0.15, metalMat, false);
-box(-1.2, 1.8, -9.9, 0.7, 0.5, 0.02, glassMat, false);
-
-// Monitores de UTI com Luzes Eletrocardiograma
-function heartMonitor(x, z) {
-  box(x, 1.4, z, 0.8, 0.8, 0.5, darkMat, true);
-  let scr = box(x, 1.4, z+0.26, 0.65, 0.65, 0.02, new THREE.MeshStandardMaterial({color: 0x0f381e, emissive: 0x0b2916}), false);
-}
-heartMonitor(-23, 26);
-heartMonitor(-23, 33);
-
-// Prateleiras de Remédios na Farmácia
-for (let sz=6; sz<=14; sz+=4) {
-  box(-23.5, 1.8, sz, 0.6, 3.5, 2.5, metalMat, true);
-}
-
-// Manchas de sangue no chão
-for (let i=0; i<8; i++) {
-  let b = new THREE.Mesh(new THREE.PlaneGeometry(2+Math.random()*2.5, 2+Math.random()*2.5), bloodMat);
-  b.rotation.x = -Math.PI/2;
-  b.position.set((Math.random()-0.5)*22, 0.02, (Math.random()-0.5)*55);
-  scene.add(b);
-}
-
-// Partículas de poeira e fumaça em suspensão no ar
-const particleGeo = new THREE.BufferGeometry();
-const particleCount = 200;
-const posArray = new Float32Array(particleCount * 3);
-for (let i=0; i<particleCount*3; i+=3) {
-  posArray[i] = (Math.random()-0.5)*35;
-  posArray[i+1] = Math.random()*4.5;
-  posArray[i+2] = (Math.random()-0.5)*75;
-}
-particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const particleMat = new THREE.PointsMaterial({ size: 0.08, color: 0x7ee0a9, transparent: true, opacity: 0.25 });
-const particles = new THREE.Points(particleGeo, particleMat);
-scene.add(particles);
-
-let inventory = { medkits: 0, pharmacyKey: false, accessCard: false };
-let noteRead = false, generatorFixed = false, cardClueFound = false, exitUnlocked = false;
-
-function updateInventoryUI() {
-  document.getElementById('medkit-count').textContent = inventory.medkits;
-  document.getElementById('slot-key').classList.toggle('active', inventory.pharmacyKey);
-  document.getElementById('slot-card').classList.toggle('active', inventory.accessCard);
-}
-
-function interactive(mesh, prompt, fn) {
-  interactives.push({ mesh, prompt, fn, used: false });
-}
-
-// Prontuário na Triagem
-const note = box(-1.2, 1.55, -9.8, 0.5, 0.05, 0.6, new THREE.MeshStandardMaterial({color: 0xded2ad}), false);
-interactive(note, 'Ler prontuário sobre o balcão', o => {
-  noteRead = true;
-  audio.playPickup();
-  story('PRONTUÁRIO DE EMERGÊNCIA #204', '“Paciente zero apresentou colapso pulmonar seguido de agressividade extrema. A ala norte foi selada. O GERADOR DE EMERGÊNCIA na Manutenção precisa ser reativado para liberar as portas eletrônicas.”');
-  scene.remove(o.mesh);
-  o.used = true;
-  setObjective('OBJETIVO: Vá até a Manutenção (Leste) e religue o Gerador.');
-});
-
-// Kit Médico Coletável 1
-const med1 = box(-17, 0.85, 10, 0.6, 0.35, 0.6, new THREE.MeshStandardMaterial({color: 0xd9e5de}), false);
-interactive(med1, 'Pegar Kit Médico de Emergência', o => {
-  inventory.medkits++;
-  audio.playPickup();
-  updateInventoryUI();
-  toast('KIT MÉDICO OBTIDO (+1)');
-  scene.remove(o.mesh);
-  o.used = true;
-});
-
-// Painel do Gerador
-const genPanel = box(22, 1.5, 31, 0.4, 2.0, 1.4, metalMat, false);
-interactive(genPanel, 'Examinar Gerador de Energia', () => {
-  if (!noteRead) {
-    toast('Você precisa ler as instruções no balcão de triagem primeiro.');
-    return;
-  }
-  openPuzzle();
-});
-
-// Chave da Farmácia na Sala de Consultas
-const keyMesh = box(18, 0.9, 10, 0.35, 0.1, 0.6, new THREE.MeshStandardMaterial({color: 0xd4af37, metalness:0.8}), false);
-interactive(keyMesh, 'Pegar Chave da Farmácia', o => {
-  if (!generatorFixed) {
-    toast('A sala está escura demais. Religue o gerador primeiro.');
-    return;
-  }
-  inventory.pharmacyKey = true;
-  audio.playPickup();
-  updateInventoryUI();
-  o.used = true;
-  scene.remove(o.mesh);
-  toast('CHAVE DA FARMÁCIA OBTIDA');
-  setObjective('OBJETIVO: Abra a Farmácia (Oeste) e procure o Cartão Master.');
-});
-
-// Porta Animada da Farmácia
-const pharmacyDoor = doorMesh(-11, 10, 0.2, 3.5, 0);
-const pharmacyDoorTrigger = box(-11, 1.4, 10, 1.5, 2.8, 2.0, darkMat, false);
-pharmacyDoorTrigger.visible = false;
-interactive(pharmacyDoorTrigger, 'Usar Chave na Porta da Farmácia', o => {
-  if (!inventory.pharmacyKey) {
-    toast('A porta da Farmácia está trancada. Encontre a chave no Consultório.');
-    return;
-  }
-  audio.playDoor();
-  pharmacyDoor.targetAngle = -Math.PI/2;
-  o.used = true;
-  toast('PORTA DA FARMÁCIA DESTRANCADA');
-});
-
-// Armário de Documentos na Farmácia
-const medCab = box(-22, 1.2, 12, 0.8, 1.8, 1.2, metalMat, false);
-interactive(medCab, 'Investigar registros de medicação', () => {
-  if (!inventory.pharmacyKey) {
-    toast('Trancado.');
-    return;
-  }
-  cardClueFound = true;
-  audio.playPickup();
-  story('DIÁRIO DO MÉDICO CHEFE', '“O Cartão de Acesso Master foi levado para a UTI durante a evacuação de pânico. Cuidado... o sujeito infectado da sala 3 ainda está rondando aquele setor.”');
-  setObjective('OBJETIVO: Vá até a UTI (Norte) e recupere o Cartão Master.');
-});
-
-// Cartão de Acesso na UTI
-const card = box(-21, 1.1, 33, 0.6, 0.08, 0.4, new THREE.MeshStandardMaterial({color: 0x3ebd82, metalness:0.6}), false);
-interactive(card, 'Pegar Cartão de Acesso Master', o => {
-  if (!cardClueFound) {
-    toast('Você ainda não sabe o que procurar nesta área.');
-    return;
-  }
-  inventory.accessCard = true;
-  audio.playPickup();
-  updateInventoryUI();
-  o.used = true;
-  scene.remove(o.mesh);
-  exitUnlocked = true;
-  story('CARTÃO MASTER ENCONTRADO!', 'Você possui o cartão de segurança supremo. Um rugido sepulcral ecoa pelo corredor central... o infectado sentiu sua presença!');
-  setObjective('OBJETIVO: Corra para a SAÍDA DE EMERGÊNCIA (Fim do Corredor)!');
-});
-
-// Painel da Saída Principal
-const exitPanel = box(2.2, 1.5, 46.5, 0.5, 1.4, 0.3, new THREE.MeshStandardMaterial({color: 0x8b0000}), false);
-interactive(exitPanel, 'Usar Cartão na Saída de Emergência', () => {
-  if (!inventory.accessCard) {
-    toast('A trava eletrônica exige o CARTÃO MASTER.');
-    return;
-  }
-  audio.playDoor();
-  document.getElementById('endingText').textContent = 'A pesada porta blindada de emergência se abre. Você se lança para o ar frio da noite enquanto as sirenes da cidade ecoam ao longe. O pesadelo do hospital ficou para trás... por enquanto.';
-  document.getElementById('ending').classList.remove('hidden');
-});
-
-function createInfected(x, z) {
-  let g = new THREE.Group();
-  let m = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.2, 0.55), new THREE.MeshStandardMaterial({color: 0x222d25}));
-  m.position.y = 1.2;
-  g.add(m);
-  
-  let h = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 10), new THREE.MeshStandardMaterial({color: 0x5a6956}));
-  h.position.y = 2.05;
-  g.add(h);
-  
-  // Olhos vermelhos famintos
-  const eyeMat = new THREE.MeshBasicMaterial({color: 0xff1100});
-  for (let ex of [-0.12, 0.12]) {
-    let eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), eyeMat);
-    eye.position.set(ex, 2.1, 0.28);
-    g.add(eye);
-  }
-  
-  g.position.set(x, 0, z);
-  scene.add(g);
-  
-  enemies.push({
-    g,
-    home: new THREE.Vector3(x, 0, z),
-    target: new THREE.Vector3(x, 0, z),
-    state: 'patrol',
-    speed: 2.3,
-    t: 0,
-    attackCd: 0,
-    roarCd: 0
-  });
-}
-
-createInfected(-16, 14);
-createInfected(16, 16);
-createInfected(-16, 36);
-
-let hp = 100, stamina = 100, flash = true, crouching = false, running = false, playing = false;
-let camYaw = Math.PI, camPitch = 0.1, joy = {x:0, y:0};
-let hitFlash = 0, heartbeatTimer = 0;
-let camCurrentHeight = 2.0; // Dynamic camera height for crouching
-
-function setObjective(t) { document.getElementById('objective').textContent = t; }
-
-function toast(t) {
-  let e = document.getElementById('toast');
-  e.textContent = t;
-  e.classList.add('show');
-  clearTimeout(window.tt);
-  window.tt = setTimeout(() => e.classList.remove('show'), 2800);
-}
-
-function story(title, text) {
-  document.getElementById('storyTitle').textContent = title;
-  document.getElementById('storyText').textContent = text;
-  document.getElementById('story').classList.remove('hidden');
-}
-
-document.getElementById('storyNext').onclick = () => document.getElementById('story').classList.add('hidden');
-
-function useMedkit() {
-  if (inventory.medkits > 0 && hp < 100) {
-    inventory.medkits--;
-    hp = Math.min(100, hp + 45);
-    audio.playHeal();
-    updateInventoryUI();
-    toast('SAÚDE RESTAURADA (+45%)');
-  } else if (hp >= 100) {
-    toast('SUA SAÚDE JÁ ESTÁ NO MÁXIMO.');
-  } else {
-    toast('NENHUM KIT MÉDICO DISPONÍVEL.');
-  }
-}
-document.getElementById('slot-medkit').onclick = useMedkit;
-
-function openPuzzle() {
-  document.getElementById('puzzleText').textContent = 'Sequência de reinicialização dos reatores: [2] → [1] → [3].';
-  let c = document.getElementById('puzzleChoices');
-  c.innerHTML = '';
-  let seq = [];
-  for (let n of [1, 2, 3]) {
-    let b = document.createElement('button');
-    b.className = 'choice-btn';
-    b.innerHTML = `<span>INTERRUPTOR PRINCIPAL ${n}</span> <span>⚡</span>`;
-    b.onclick = () => {
-      audio.playPuzzleBeep(true);
-      seq.push(n);
-      if (seq.length === 3) {
-        if (seq.join(',') === '2,1,3') {
-          generatorFixed = true;
-          document.getElementById('puzzle').classList.add('hidden');
-          toast('ENERGIA RESTAURADA COM SUCESSO!');
-          setObjective('OBJETIVO: Busque a Chave da Farmácia no Consultório.');
-          story('ENERGIA RESTAURADA', 'Os grandes geradores voltam à vida com um rugido elétrico! As luzes do hospital piscam e o caminho para o Consultório e Farmácia agora está livre.');
-        } else {
-          seq = [];
-          audio.playPuzzleBeep(false);
-          toast('SEQUÊNCIA ERRADA! PAINEL REINICIADO.');
+                if(char === '#') map[r][c] = 1;
+                else if(char === '^') map[r][c] = 2;
+                else if(char === 'D') { mapObjects.push(new MapObject(px, py, 'door')); map[r][c] = 4; }
+                else if(char === 'B') mapObjects.push(new PhysicsBox(px, py));
+                else if(char === 'S') mapObjects.push(new MapObject(px, py, 'switch'));
+                else if(char === 'E') mapObjects.push(new MapObject(px, py, 'exit'));
+                else if(char === 'P') player = new Player(px, py);
+                else if(char === 'R') entities.push(new Enemy(px, py, 'runner'));
+                else if(char === 'C') entities.push(new Enemy(px, py, 'clicker'));
+                else if(char === 'F') spores.push({x: px, y: py});
+            }
         }
-      }
-    };
-    c.appendChild(b);
-  }
-  document.getElementById('puzzle').classList.remove('hidden');
-}
-
-function action() {
-  if (!document.getElementById('story').classList.contains('hidden') ||
-      !document.getElementById('puzzle').classList.contains('hidden') ||
-      !document.getElementById('ending').classList.contains('hidden')) return;
-      
-  let best = null, dist = 2.8;
-  for (const o of interactives) if (!o.used) {
-    const d = o.mesh.position.distanceTo(player.position);
-    if (d < dist) { dist = d; best = o; }
-  }
-  if (best) best.fn(best);
-  else toast('Nada para interagir aqui.');
-}
-document.getElementById('action').onclick = action;
-
-function setFlash(on) {
-  flash = on;
-  flashlight.visible = flash;
-  flashlightCone.visible = flash;
-  audio.playFlash();
-  document.getElementById('flash').classList.toggle('active', flash);
-}
-document.getElementById('flash').onclick = () => setFlash(!flash);
-
-function toggleCrouch() {
-  crouching = !crouching;
-  if (crouching) running = false;
-  document.getElementById('crouch').classList.toggle('active', crouching);
-  document.getElementById('crouch-badge').classList.toggle('active', crouching);
-  toast(crouching ? 'AGACHADO (MODO SILENCIOSO)' : 'EM PÉ');
-}
-document.getElementById('crouch').onclick = toggleCrouch;
-
-const runBtn = document.getElementById('run');
-runBtn.onpointerdown = e => { e.preventDefault(); if (!crouching) running = true; runBtn.setPointerCapture?.(e.pointerId); };
-['pointerup','pointercancel','pointerleave'].forEach(ev => runBtn.addEventListener(ev, () => running = false));
-
-// Controles Touch Joystick
-const joyEl = document.getElementById('joy'), stick = document.getElementById('stick');
-let joyId = null;
-function updJoy(e) {
-  let r = joyEl.getBoundingClientRect(), dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2), l = Math.hypot(dx,dy), m = 40;
-  if (l > m) { dx *= m/l; dy *= m/l; }
-  joy.x = dx/m; joy.y = dy/m;
-  stick.style.transform = `translate(${dx}px,${dy}px)`;
-}
-joyEl.addEventListener('pointerdown', e => { joyId = e.pointerId; joyEl.setPointerCapture(joyId); updJoy(e); });
-joyEl.addEventListener('pointermove', e => { if (e.pointerId === joyId) updJoy(e); });
-function endJoy() { joyId = null; joy.x = joy.y = 0; stick.style.transform = 'translate(0,0)'; }
-joyEl.addEventListener('pointerup', endJoy);
-joyEl.addEventListener('pointercancel', endJoy);
-
-// Controle de Visão Touch Drag
-let lookId = null, lastLook = null;
-const look = document.getElementById('look');
-look.addEventListener('pointerdown', e => { lookId = e.pointerId; lastLook = [e.clientX, e.clientY]; look.setPointerCapture(lookId); });
-look.addEventListener('pointermove', e => {
-  if (e.pointerId !== lookId) return;
-  camYaw -= (e.clientX - lastLook[0]) * 0.006;
-  camPitch = Math.max(-0.35, Math.min(0.55, camPitch - (e.clientY - lastLook[1]) * 0.005));
-  lastLook = [e.clientX, e.clientY];
-});
-look.addEventListener('pointerup', () => lookId = null);
-look.addEventListener('pointercancel', () => lookId = null);
-
-let footstepTimer = 0;
-
-function update(dt, t) {
-  // Atualiza nome da sala no HUD
-  let room = rooms.find(r => Math.abs(player.position.x - r.x) < r.w/2 && Math.abs(player.position.z - r.z) < r.d/2);
-  if (room) document.getElementById('room').textContent = room.name;
-  
-  // Animação de Portas
-  for (let d of doors) {
-    d.pivot.rotation.y = THREE.MathUtils.lerp(d.pivot.rotation.y, d.targetAngle, dt * 5);
-  }
-  
-  // Transição suave da altura do jogador e da câmera para AGACHAR
-  let targetCamH = crouching ? 1.05 : 2.0;
-  camCurrentHeight = THREE.MathUtils.lerp(camCurrentHeight, targetCamH, dt * 8);
-  torso.scale.y = THREE.MathUtils.lerp(torso.scale.y, crouching ? 0.55 : 1.0, dt * 8);
-  head.position.y = THREE.MathUtils.lerp(head.position.y, crouching ? 1.3 : 2.02, dt * 8);
-
-  // Movimento do Jogador
-  let forward = new THREE.Vector3(Math.sin(camYaw), 0, Math.cos(camYaw));
-  let right = new THREE.Vector3(forward.z, 0, -forward.x);
-  let mv = forward.clone().multiplyScalar(joy.y).add(right.multiplyScalar(joy.x));
-  if (mv.length() > 1) mv.normalize();
-  
-  let sprint = running && stamina > 1 && mv.length() > 0.1 && !crouching;
-  let speed = crouching ? 1.6 : sprint ? 5.8 : 3.4;
-  
-  if (sprint) stamina = Math.max(0, stamina - 26*dt);
-  else stamina = Math.min(100, stamina + 16*dt);
-  
-  // Movimento com deslizamento de colisão nas paredes
-  let deltaMove = mv.clone().multiplyScalar(speed * dt);
-  let nextX = player.position.clone().add(new THREE.Vector3(deltaMove.x, 0, 0));
-  if (!collide(nextX)) player.position.x = nextX.x;
-  
-  let nextZ = player.position.clone().add(new THREE.Vector3(0, 0, deltaMove.z));
-  if (!collide(nextZ)) player.position.z = nextZ.z;
-  
-  // Som de passos e animação de pernas
-  if (mv.length() > 0.1) {
-    footstepTimer -= dt * (sprint ? 2.3 : crouching ? 0.7 : 1.3);
-    if (footstepTimer <= 0) {
-      if (!crouching) audio.playFootstep(sprint ? 1.4 : 1.0);
-      footstepTimer = 0.5;
     }
-    let a = Math.atan2(mv.x, mv.z);
-    player.rotation.y += Math.atan2(Math.sin(a - player.rotation.y), Math.cos(a - player.rotation.y)) * Math.min(1, dt*10);
-    for (let i=0; i<2; i++) legs[i].rotation.x = Math.sin(t*(sprint?14:8)+(i?Math.PI:0)) * (crouching?0.2:0.5);
-  }
-  
-  // Piscar de luzes dos geradores
-  for (let l of ceilingLamps) {
-    l.flickerTimer += dt;
-    if (generatorFixed && l.baseOn) {
-      l.light.intensity = 1.4 + Math.sin(l.flickerTimer*12)*0.12;
+
+    function getTile(c, r) {
+        if(c < 0 || c >= mapCols || r < 0 || r >= mapRows) return 1;
+        return map[r][c];
     }
-  }
-  
-  // IA dos Infectados
-  for (const e of enemies) {
-    e.attackCd -= dt;
-    e.roarCd -= dt;
-    let d = e.g.position.distanceTo(player.position);
-    
-    // Percepção de Furtividade: Agachar reduz a distância de detecção!
-    let detectDist = crouching ? 3.8 : sprint ? 13.0 : 8.5;
-    if (flash) detectDist += 3.5;
-    
-    if (d < detectDist) {
-      if (e.state !== 'chase' && e.roarCd <= 0) {
-        audio.playMonsterRoar();
-        e.roarCd = 8;
-      }
-      e.state = 'chase';
+
+    function isSolid(tile) {
+        return tile === 1 || tile === 4;
     }
-    
-    if (e.state === 'chase') {
-      e.target.copy(player.position);
-    } else {
-      e.t -= dt;
-      if (e.t < 0) {
-        e.t = 3 + Math.random()*4;
-        e.target.copy(e.home).add(new THREE.Vector3((Math.random()-0.5)*8, 0, (Math.random()-0.5)*8));
-      }
+
+    function checkCollision(obj, dx, dy) {
+        let res = { x: dx, y: dy, hitX: false, hitY: false, hazard: false };
+
+        // Teste X
+        let tx = { x: obj.x + dx, y: obj.y, w: obj.w, h: obj.h };
+        let cL = Math.floor(tx.x / TILE_SIZE);
+        let cR = Math.floor((tx.x + tx.w - 0.1) / TILE_SIZE);
+        let rT = Math.floor(tx.y / TILE_SIZE);
+        let rB = Math.floor((tx.y + tx.h - 0.1) / TILE_SIZE);
+
+        for(let r=rT; r<=rB; r++){
+            for(let c=cL; c<=cR; c++){
+                let t = getTile(c, r);
+                if(isSolid(t)){
+                    res.hitX = true;
+                    if(dx > 0) res.x = c * TILE_SIZE - obj.w - obj.x;
+                    else if(dx < 0) res.x = (c+1) * TILE_SIZE - obj.x;
+                }
+                if(t === 2) res.hazard = true;
+            }
+        }
+
+        // Teste Y
+        let ty = { x: obj.x + res.x, y: obj.y + dy, w: obj.w, h: obj.h };
+        cL = Math.floor(ty.x / TILE_SIZE);
+        cR = Math.floor((ty.x + ty.w - 0.1) / TILE_SIZE);
+        rT = Math.floor(ty.y / TILE_SIZE);
+        rB = Math.floor((ty.y + ty.h - 0.1) / TILE_SIZE);
+
+        for(let r=rT; r<=rB; r++){
+            for(let c=cL; c<=cR; c++){
+                let t = getTile(c, r);
+                if(isSolid(t)){
+                    res.hitY = true;
+                    if(dy > 0) res.y = r * TILE_SIZE - obj.h - obj.y;
+                    else if(dy < 0) res.y = (c+1) * TILE_SIZE - obj.y;
+                }
+                if(t === 2) res.hazard = true;
+            }
+        }
+        return res;
     }
-    
-    let dir = e.target.clone().sub(e.g.position);
-    dir.y = 0;
-    if (dir.length() > 0.4) {
-      dir.normalize();
-      let n = e.g.position.clone().addScaledVector(dir, (e.state === 'chase' ? e.speed*1.2 : e.speed*0.4) * dt);
-      if (!collide(n, 0.5)) e.g.position.copy(n);
-      e.g.rotation.y = Math.atan2(dir.x, dir.z);
+
+    function rectIntersect(a, b) {
+        return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
     }
-    
-    // Ataque do monstro
-    if (d < 1.35 && e.attackCd <= 0) {
-      e.attackCd = 1.0;
-      hp = Math.max(0, hp - 24);
-      hitFlash = 0.45;
-      audio.playHurt();
-      toast('UM INFECTADO ATACOU VOCÊ!');
-      if (navigator.vibrate) navigator.vibrate([70, 40, 90]);
-      if (hp <= 0) document.getElementById('death').classList.remove('hidden');
+
+    class Player {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.w = 26; this.h = 44;
+            this.vx = 0; this.vy = 0;
+            this.speed = 4.2;
+            this.sneakSpeed = 1.7;
+            this.jumpForce = -11.5;
+            this.grounded = false;
+            this.facingRight = true;
+            this.crouching = false;
+            this.health = 100;
+            this.invulnerable = 0;
+            this.noise = 0;
+            this.attackCD = 0;
+            this.anim = 0;
+        }
+
+        update() {
+            if(this.health <= 0) return;
+
+            let prevCrouch = this.crouching;
+            this.crouching = keys.crouch && this.grounded;
+
+            if(this.crouching && !prevCrouch) {
+                this.h = 28; this.y += 16;
+            } else if(!this.crouching && prevCrouch) {
+                let test = checkCollision({x: this.x, y: this.y - 16, w: this.w, h: 44}, 0, 0);
+                if(!test.hitY && !test.hitX) {
+                    this.h = 44; this.y -= 16;
+                } else {
+                    this.crouching = true;
+                }
+            }
+
+            let currentSpeed = this.crouching ? this.sneakSpeed : this.speed;
+            if(keys.left) { this.vx -= 1.4; this.facingRight = false; }
+            if(keys.right) { this.vx += 1.4; this.facingRight = true; }
+
+            this.vx *= FRICTION;
+            if(Math.abs(this.vx) > currentSpeed) this.vx = Math.sign(this.vx) * currentSpeed;
+            if(Math.abs(this.vx) < 0.2) this.vx = 0;
+
+            if(keys.up && this.grounded && !this.crouching) {
+                this.vy = this.jumpForce;
+                this.grounded = false;
+                spawnParticles(this.x + this.w/2, this.y + this.h, '#777', 6, 2);
+            }
+
+            this.vy += GRAVITY;
+            if(this.vy > TERMINAL_VELOCITY) this.vy = TERMINAL_VELOCITY;
+
+            let col = checkCollision(this, this.vx, this.vy);
+
+            // Interação com Caixas de Física
+            mapObjects.forEach(obj => {
+                if(obj instanceof PhysicsBox) {
+                    if(this.vy > 0 && this.y + this.h <= obj.y + 12 && this.x + this.w > obj.x && this.x < obj.x + obj.w) {
+                        col.hitY = true; col.y = obj.y - this.h - this.y;
+                    } else if(rectIntersect({x: this.x + this.vx, y: this.y, w: this.w, h: this.h}, obj)) {
+                        if(keys.action && this.grounded) {
+                            obj.vx = Math.sign(this.vx) * 2;
+                        } else {
+                            col.hitX = true; col.x = 0; this.vx = 0;
+                        }
+                    }
+                }
+            });
+
+            this.x += col.x;
+            this.y += col.y;
+
+            if(col.hitY) {
+                if(this.vy > 9 && !this.grounded) spawnParticles(this.x + this.w/2, this.y + this.h, '#555', 8, 3);
+                this.grounded = true;
+                this.vy = 0;
+            } else {
+                this.grounded = false;
+            }
+            if(col.hitX) this.vx = 0;
+            if(col.hazard) this.damage(100);
+
+            // Sistema de Barulho / Furtividade
+            if(this.grounded && Math.abs(this.vx) > 1 && !this.crouching) {
+                this.noise = 80;
+            } else {
+                this.noise = Math.max(0, this.noise - 8);
+            }
+
+            // Ataque Físico (Faca de Sobrevivência)
+            if(keys.action && this.attackCD <= 0 && !this.crouching) {
+                this.attackCD = 35;
+                let hitBox = { x: this.facingRight ? this.x + this.w : this.x - 32, y: this.y, w: 32, h: this.h };
+                entities.forEach(e => {
+                    if(e.health > 0 && rectIntersect(hitBox, e)) {
+                        e.damage(50, this.facingRight ? 1 : -1);
+                        camera.shake = 12;
+                    }
+                });
+            }
+
+            if(this.attackCD > 0) this.attackCD--;
+            if(this.invulnerable > 0) this.invulnerable--;
+            this.anim += Math.abs(this.vx) * 0.12;
+        }
+
+        damage(amt) {
+            if(this.invulnerable > 0 || this.health <= 0) return;
+            this.health -= amt;
+            this.invulnerable = 50;
+            camera.shake = 18;
+            spawnParticles(this.x + this.w/2, this.y + this.h/2, '#900', 16, 4);
+
+            const flash = document.getElementById('damage-flash');
+            flash.style.background = 'rgba(160, 0, 0, 0.7)';
+            setTimeout(() => flash.style.background = 'rgba(150, 0, 0, 0)', 250);
+
+            const hbContainer = document.getElementById('health-container');
+            hbContainer.style.opacity = '1';
+            document.getElementById('health-fill').style.width = Math.max(0, this.health) + '%';
+            setTimeout(() => { if(this.health > 0) hbContainer.style.opacity = '0'; }, 2500);
+
+            if(this.health <= 0) {
+                gameState = 'dead';
+                document.getElementById('screen-death').style.opacity = '1';
+            }
+        }
+
+        draw() {
+            if(this.health <= 0) return;
+            ctx.save();
+            ctx.translate(this.x + this.w/2, this.y + this.h);
+            if(!this.facingRight) ctx.scale(-1, 1);
+
+            if(this.invulnerable > 0 && frameCount % 6 < 3) ctx.globalAlpha = 0.4;
+
+            let bob = (this.grounded && Math.abs(this.vx) > 0.5) ? Math.sin(this.anim) * 2.5 : 0;
+
+            // Corpo
+            ctx.fillStyle = '#3c473c';
+            ctx.fillRect(-this.w/2, -this.h + bob, this.w, this.h - 10);
+            
+            // Pernas
+            ctx.fillStyle = '#1b1f24';
+            ctx.fillRect(-this.w/2 + 2, -10, 8, 10);
+            ctx.fillRect(this.w/2 - 10, -10, 8, 10);
+
+            // Cabeça
+            ctx.fillStyle = '#d4b296';
+            ctx.fillRect(-7, -this.h - 12 + bob, 14, 12);
+
+            // Faca em punho ao atacar
+            if(this.attackCD > 20) {
+                ctx.fillStyle = '#e2e8f0';
+                ctx.fillRect(this.w/2, -this.h/2 + bob, 22, 4);
+            }
+
+            ctx.restore();
+        }
     }
-  }
-  
-  // Prompt de Interação Próxima
-  let nearest = interactives.filter(o => !o.used).sort((a,b) => a.mesh.position.distanceTo(player.position) - b.mesh.position.distanceTo(player.position))[0];
-  let pr = document.getElementById('prompt');
-  if (nearest && nearest.mesh.position.distanceTo(player.position) < 2.5) {
-    pr.style.display = 'block';
-    pr.textContent = '✋ ' + nearest.prompt;
-  } else pr.style.display = 'none';
-  
-  // HUD Status
-  document.getElementById('hp').textContent = Math.round(hp) + '%';
-  document.getElementById('hpfill').style.width = hp + '%';
-  document.getElementById('st').textContent = Math.round(stamina) + '%';
-  document.getElementById('stfill').style.width = stamina + '%';
-  
-  hitFlash = Math.max(0, hitFlash - dt);
-  document.getElementById('damage').style.opacity = hitFlash;
-  
-  // Batimento cardíaco visual
-  if (hp < 35) {
-    heartbeatTimer += dt * 4;
-    document.getElementById('heartbeat-border').style.boxShadow = `inset 0 0 ${20 + Math.sin(heartbeatTimer)*25}px rgba(220,0,0,0.65)`;
-  } else {
-    document.getElementById('heartbeat-border').style.boxShadow = 'none';
-  }
-  
-  flashlight.intensity = flash ? 8.5 + Math.sin(t*18)*0.2 : 0;
-  
-  // Câmera e Lanterna alinhados
-  let camDist = crouching ? 5.2 : 6.4;
-  let desired = player.position.clone().add(new THREE.Vector3(Math.sin(camYaw)*camDist, camCurrentHeight + camPitch*1.8, Math.cos(camYaw)*camDist));
-  camera.position.lerp(desired, Math.min(1, dt*9));
-  camera.lookAt(player.position.clone().add(new THREE.Vector3(0, camCurrentHeight*0.65 + camPitch*1.5, 0)));
-}
 
-function startGame(e) {
-  if (e) e.preventDefault();
-  audio.init();
-  const menu = document.getElementById('menu');
-  menu.classList.add('hidden');
-  playing = true;
-  story('O DESPERTAR', 'Você acorda na recepção da emergência. O ar está pesado e fumaça fria sai dos dutos de ventilação. Encontre um caminho para sair daqui antes que as coisas na escuridão cheguem até você.');
-}
-document.getElementById('start').onclick = startGame;
+    class Enemy {
+        constructor(x, y, type) {
+            this.x = x; this.y = y;
+            this.w = 26; this.h = 44;
+            this.type = type; // 'clicker', 'runner'
+            this.health = type === 'clicker' ? 100 : 50;
+            this.vx = 0; this.vy = 0;
+            this.speed = type === 'clicker' ? 1.4 : 3.2;
+            this.state = 'patrol';
+            this.dir = 1;
+            this.timer = Math.random() * 80;
+            this.stun = 0;
+            this.anim = 0;
+        }
 
-// Suporte para Teclado Desktop
-addEventListener('keydown', e => {
-  if (e.code === 'KeyF') setFlash(!flash);
-  if (e.code === 'KeyE') action();
-  if (e.code === 'Digit1') useMedkit();
-  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') { if (!crouching) running = true; }
-  if (e.code === 'ControlLeft' || e.code === 'KeyC') toggleCrouch();
-  if (e.code === 'KeyW') joy.y = -1;
-  if (e.code === 'KeyS') joy.y = 1;
-  if (e.code === 'KeyA') joy.x = -1;
-  if (e.code === 'KeyD') joy.x = 1;
-});
+        damage(amt, dir) {
+            this.health -= amt;
+            this.stun = 25;
+            this.vx = dir * 6;
+            this.vy = -4;
+            spawnParticles(this.x + this.w/2, this.y + 15, '#500', 10, 4);
+        }
 
-addEventListener('keyup', e => {
-  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') running = false;
-  if (['KeyW','KeyS'].includes(e.code)) joy.y = 0;
-  if (['KeyA','KeyD'].includes(e.code)) joy.x = 0;
-});
+        update(player) {
+            if(this.health <= 0) return;
 
-setFlash(true);
+            if(this.stun > 0) {
+                this.stun--;
+                this.vx *= FRICTION;
+            } else {
+                let dist = Math.hypot((player.x + player.w/2) - (this.x + this.w/2), (player.y + player.h/2) - (this.y + this.h/2));
+                let sameY = Math.abs(player.y - this.y) < 70;
 
-function loop() {
-  requestAnimationFrame(loop);
-  let dt = Math.min(0.05, clock.getDelta()), t = clock.getElapsedTime();
-  const morto = !document.getElementById('death').classList.contains('hidden');
-  const bloqueado = !document.getElementById('story').classList.contains('hidden') ||
-                 !document.getElementById('puzzle').classList.contains('hidden') ||
-                 !document.getElementById('ending').classList.contains('hidden');
-  if (playing && !morto && !bloqueado) update(dt, t);
-  renderer.render(scene, camera);
-}
-loop();
+                if(this.type === 'clicker') {
+                    // Audição pura
+                    let alertSound = player.noise > 45 && dist < 220 && sameY;
+                    if(alertSound || dist < 45) {
+                        this.state = 'chase';
+                        this.dir = player.x > this.x ? 1 : -1;
+                        this.speed = 3.8;
+                    } else if(this.state === 'chase' && dist > 280) {
+                        this.state = 'patrol'; this.speed = 1.4;
+                    }
+                } else if(this.type === 'runner') {
+                    // Visão e proximidade
+                    let lineOfSight = dist < 280 && sameY && ((this.dir === 1 && player.x > this.x) || (this.dir === -1 && player.x < this.x));
+                    if(lineOfSight || dist < 60) {
+                        this.state = 'chase';
+                        this.dir = player.x > this.x ? 1 : -1;
+                    } else if(this.state === 'chase' && dist > 350) {
+                        this.state = 'patrol';
+                    }
+                }
 
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
-});
+                if(this.state === 'patrol') {
+                    this.vx = this.speed * 0.5 * this.dir;
+                    this.timer--;
+                    if(this.timer <= 0) { this.timer = 90 + Math.random()*80; this.dir *= -1; }
+                } else if(this.state === 'chase') {
+                    this.vx = this.speed * this.dir;
+                }
+            }
+
+            this.vy += GRAVITY;
+            if(this.vy > TERMINAL_VELOCITY) this.vy = TERMINAL_VELOCITY;
+
+            let col = checkCollision(this, this.vx, this.vy);
+            if(col.hitX && this.state !== 'chase') this.dir *= -1;
+            if(col.hitX && this.state === 'chase' && col.y === 0) this.vy = -9;
+
+            this.x += col.x;
+            this.y += col.y;
+            if(col.hitY) this.vy = 0;
+
+            if(rectIntersect(this, player) && player.invulnerable <= 0 && this.stun <= 0) {
+                player.damage(this.type === 'clicker' ? 100 : 25);
+            }
+
+            this.anim += Math.abs(this.vx) * 0.1;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.translate(this.x + this.w/2, this.y + this.h);
+            if(this.dir === -1) ctx.scale(-1, 1);
+
+            if(this.health <= 0) {
+                ctx.globalAlpha = 0.4;
+                ctx.translate(0, -6);
+                ctx.rotate(Math.PI/2);
+            }
+
+            let bob = Math.sin(this.anim) * 2;
+
+            if(this.type === 'clicker') {
+                ctx.fillStyle = '#4c463d';
+                ctx.fillRect(-this.w/2, -this.h + bob, this.w, this.h);
+                // Cabeça de fungo
+                ctx.fillStyle = '#a67c1e';
+                ctx.beginPath(); ctx.arc(2, -this.h - 4 + bob, 13, 0, Math.PI*2); ctx.fill();
+            } else {
+                ctx.fillStyle = '#6d3737';
+                ctx.fillRect(-this.w/2, -this.h + bob, this.w, this.h);
+                ctx.fillStyle = '#b08ca0';
+                ctx.fillRect(0, -this.h - 8 + bob, 12, 12);
+                ctx.fillStyle = '#e00';
+                ctx.fillRect(8, -this.h - 5 + bob, 2, 2);
+            }
+
+            ctx.restore();
+        }
+    }
+
+    class PhysicsBox {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.w = TILE_SIZE - 6; this.h = TILE_SIZE - 6;
+            this.vx = 0; this.vy = 0;
+        }
+        update() {
+            this.vy += GRAVITY;
+            this.vx *= FRICTION;
+            if(Math.abs(this.vx) < 0.1) this.vx = 0;
+
+            let col = checkCollision(this, this.vx, this.vy);
+            this.x += col.x; this.y += col.y;
+            if(col.hitY) this.vy = 0;
+            if(col.hitX) this.vx = 0;
+        }
+        draw() {
+            ctx.fillStyle = '#433426';
+            ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.strokeStyle = '#281e14'; ctx.lineWidth = 2;
+            ctx.strokeRect(this.x, this.y, this.w, this.h);
+        }
+    }
+
+    class MapObject {
+        constructor(x, y, type) {
+            this.x = x; this.y = y; this.type = type;
+            this.w = TILE_SIZE; this.h = TILE_SIZE;
+            this.active = false;
+            if(type === 'door') this.h = TILE_SIZE * 2;
+            if(type === 'switch') { this.w = 24; this.h = 32; this.y += TILE_SIZE - 32; this.x += 12; }
+        }
+        update(player) {
+            if(this.type === 'switch' && !this.active) {
+                if(rectIntersect(this, player)) {
+                    showStory("Gerador de Energia. Pressione AÇÃO para ligar.");
+                    if(keys.action) {
+                        this.active = true;
+                        camera.shake = 20;
+                        showStory("Energia restabelecida. Portas abertas.", 3500);
+                        mapObjects.forEach(o => {
+                            if(o.type === 'door') {
+                                o.active = true;
+                                let c = Math.floor(o.x / TILE_SIZE);
+                                let r = Math.floor(o.y / TILE_SIZE);
+                                map[r][c] = 0; map[r+1][c] = 0;
+                            }
+                        });
+                    }
+                }
+            } else if(this.type === 'exit') {
+                if(rectIntersect(this, player)) {
+                    gameState = 'win';
+                    document.getElementById('screen-win').style.opacity = '1';
+                }
+            }
+        }
+        draw() {
+            if(this.type === 'switch') {
+                ctx.fillStyle = '#222'; ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.fillStyle = this.active ? '#0f0' : '#f00';
+                ctx.beginPath(); ctx.arc(this.x + this.w/2, this.y + 10, 4, 0, Math.PI*2); ctx.fill();
+            } else if(this.type === 'door' && !this.active) {
+                ctx.fillStyle = '#1b1f24';
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.fillStyle = '#cc0';
+                ctx.fillRect(this.x, this.y + this.h/2 - 4, this.w, 8);
+            } else if(this.type === 'exit') {
+                ctx.fillStyle = 'rgba(150, 255, 180, 0.12)';
+                ctx.fillRect(this.x, this.y - TILE_SIZE, this.w, this.h * 3);
+            }
+        }
+    }
+
+    function spawnParticles(x, y, color, count, speed) {
+        for(let i=0; i<count; i++){
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random()-0.5)*speed, vy: (Math.random()-0.5)*speed - speed*0.5,
+                life: 1.0, decay: Math.random()*0.04 + 0.02, color: color, size: Math.random()*3 + 1
+            });
+        }
+    }
+
+    function updateParticles() {
+        if(frameCount % 6 === 0) {
+            spores.forEach(s => {
+                if(Math.abs(s.x - player.x) < 700) {
+                    particles.push({
+                        x: s.x + (Math.random()-0.5)*250, y: s.y + (Math.random()-0.5)*250,
+                        vx: (Math.random()-0.5)*0.4, vy: -Math.random()*0.4 - 0.2,
+                        life: 1.0, decay: 0.005, color: '#8da342', size: 1.5, isSpore: true
+                    });
+                }
+            });
+        }
+
+        for(let i = particles.length - 1; i >= 0; i--){
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy;
+            if(!p.isSpore) p.vy += GRAVITY * 0.4;
+            p.life -= p.decay;
+            if(p.life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    function drawParticles() {
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+        });
+        ctx.globalAlpha = 1.0;
+    }
+
+    function buildParallaxBackground() {
+        bgCtx.fillStyle = '#030508';
+        bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+        
+        bgCtx.fillStyle = '#070a0f';
+        for(let i=0; i<bgCanvas.width; i += 120 + Math.random()*60) {
+            let h = 250 + Math.random()*250;
+            bgCtx.fillRect(i, bgCanvas.height - h, 90 + Math.random()*40, h);
+        }
+    }
+
+    let storyTimer = null;
+    function showStory(text, duration = 4000) {
+        const box = document.getElementById('story-box');
+        box.innerText = text;
+        box.style.opacity = '1';
+        clearTimeout(storyTimer);
+        if(duration > 0) storyTimer = setTimeout(() => box.style.opacity = '0', duration);
+    }
+
+    function init() {
+        resize();
+        parseMap();
+        showStory("O FIM DA ESTRADA", 4500);
+        setTimeout(() => showStory("Use as setas para mover, ▲ para pular, ▼ para abaixar.\nAtive o gerador para abrir a rota.", 5500), 5000);
+        gameLoop();
+    }
+
+    function gameLoop() {
+        if(gameState === 'playing') {
+            player.update();
+            entities.forEach(e => e.update(player));
+            mapObjects.forEach(o => o.update(player));
+            updateParticles();
+
+            // Câmera Suave com foco à frente
+            let targetX = player.x + player.w/2 - W/2 + (player.facingRight ? 90 : -90);
+            let targetY = player.y + player.h/2 - H/2 + 40;
+
+            targetX = Math.max(0, Math.min(targetX, mapCols * TILE_SIZE - W));
+            targetY = Math.max(0, Math.min(targetY, mapRows * TILE_SIZE - H));
+
+            camera.x += (targetX - camera.x) * 0.1;
+            camera.y += (targetY - camera.y) * 0.1;
+
+            let sX = 0, sY = 0;
+            if(camera.shake > 0) {
+                sX = (Math.random()-0.5) * camera.shake;
+                sY = (Math.random()-0.5) * camera.shake;
+                camera.shake--;
+            }
+
+            // Renderização Completa
+            ctx.fillStyle = '#030508';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.save();
+            ctx.translate(-camera.x + sX, -camera.y + sY);
+
+            // Parallax Background
+            let bgOffset = (camera.x * 0.25) % bgCanvas.width;
+            ctx.drawImage(bgCanvas, -bgOffset, 0);
+            ctx.drawImage(bgCanvas, bgCanvas.width - bgOffset, 0);
+
+            // Mapa (Tiles)
+            for(let r=0; r<mapRows; r++){
+                for(let c=0; c<mapCols; c++){
+                    let t = map[r][c];
+                    if(t === 0) continue;
+                    let wx = c * TILE_SIZE; let wy = r * TILE_SIZE;
+                    if(wx + TILE_SIZE < camera.x || wx > camera.x + W || wy + TILE_SIZE < camera.y || wy > camera.y + H) continue;
+
+                    if(t === 1) {
+                        ctx.fillStyle = '#141a14';
+                        ctx.fillRect(wx, wy, TILE_SIZE, TILE_SIZE);
+                        if(r > 0 && map[r-1][c] !== 1) {
+                            ctx.fillStyle = '#212e21';
+                            ctx.fillRect(wx, wy, TILE_SIZE, 6);
+                        }
+                    } else if(t === 2) {
+                        ctx.fillStyle = '#4e5422';
+                        ctx.beginPath();
+                        ctx.moveTo(wx, wy+TILE_SIZE);
+                        ctx.lineTo(wx+TILE_SIZE/2, wy+TILE_SIZE/2);
+                        ctx.lineTo(wx+TILE_SIZE, wy+TILE_SIZE);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            mapObjects.forEach(o => o.draw());
+            entities.forEach(e => e.draw());
+            player.draw();
+            drawParticles();
+
+            ctx.restore();
+
+            // Iluminação Dinâmica Realista (Lanterna e Luz Ambiente Eficiente)
+            ctx.save();
+            ctx.globalCompositeOperation = 'multiply';
+            let px = player.x + player.w/2 - camera.x;
+            let py = player.y + player.h/2 - camera.y;
+
+            let darkGrad = ctx.createRadialGradient(px, py, 10, px, py, 320);
+            darkGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            darkGrad.addColorStop(0.4, 'rgba(180, 190, 200, 0.85)');
+            darkGrad.addColorStop(1, 'rgba(10, 15, 25, 0.94)'); // Escuridão densa nas bordas
+
+            ctx.fillStyle = darkGrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+
+            frameCount++;
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    window.onload = init;
 </script>
 </body>
 </html>
