@@ -1,75 +1,2117 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>O Hospital — Capítulo 1 V4</title><style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020302;font-family:Arial,sans-serif}body{position:fixed;inset:0}#game{position:fixed;inset:0}canvas{width:100%;height:100%;display:block}#menu{position:fixed;inset:0;z-index:20;background:radial-gradient(circle,#26312a,#050706 55%,#000);display:flex;align-items:center;justify-content:center;color:#eee;text-align:center}.title{font-size:min(10vw,70px);letter-spacing:12px;font-weight:900;text-shadow:0 8px 30px #000}.sub{font-size:10px;letter-spacing:5px;color:#a5ada6;margin:15px}button{font:inherit;color:#eee;border:1px solid #657068;background:#151a17;border-radius:8px;padding:16px 30px;box-shadow:0 8px 25px #000}#hud{position:fixed;inset:0;pointer-events:none;z-index:5;color:#eee}#mission{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1.5px;padding:9px 18px;background:#000b;border-left:2px solid #a78b3b;text-align:center;max-width:60vw}#zone{position:absolute;top:14px;left:14px;background:#000a;padding:9px 12px;font-size:9px;letter-spacing:2px}#bars{position:absolute;right:14px;top:14px;width:145px}.stat{margin:5px 0;background:#0009;padding:6px;font-size:8px;letter-spacing:2px}.bar{height:5px;background:#222;margin-top:5px}.fill{height:100%;transition:.15s}#hp{background:#bd3535}#st{background:#4b91c1}#bat{background:#c6a849}#hint{position:absolute;left:50%;bottom:105px;transform:translateX(-50%);font-size:10px;background:#000b;padding:8px 14px;border-radius:6px;opacity:0;transition:.2s;white-space:nowrap}#hint.on{opacity:1}#message{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);font-size:14px;letter-spacing:2px;text-align:center;text-shadow:0 2px 12px #000;opacity:0;transition:.3s}#message.on{opacity:1}#controls{position:fixed;inset:0;z-index:10;pointer-events:none}.joy{position:absolute;left:16px;bottom:16px;width:145px;height:145px;border-radius:50%;pointer-events:auto;border:2px solid #ffffff22;background:#0005}.stick{position:absolute;width:62px;height:62px;border-radius:50%;left:40px;top:40px;background:radial-gradient(circle at 30% 30%,#68736b,#18201c);border:2px solid #ffffff33}.actions{position:absolute;right:16px;bottom:16px;display:grid;grid-template-columns:70px 70px;gap:9px;pointer-events:auto}.act{width:70px;height:62px;padding:4px;font-size:9px;font-weight:bold;border-radius:50%;background:radial-gradient(circle at 30% 25%,#455049,#111614);border:1px solid #ffffff33}.act.down{transform:scale(.92);filter:brightness(1.35)}#run{border-color:#974444}#damage{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse,transparent 45%,#900a);opacity:0;z-index:8;transition:.12s}@media(orientation:portrait){#menu:after{content:'GIRE O CELULAR PARA JOGAR';position:absolute;bottom:25%;font-size:12px;letter-spacing:3px;color:#ddd}} </style></head><body><div id="game"></div><div id="menu"><div><div class="title">O HOSPITAL</div><div class="sub">CAPÍTULO 1 — ECOS DO SURTO</div><p style="color:#98a099;font-size:12px;max-width:520px;margin:22px auto">Uma história original de sobrevivência em um hospital abandonado, com ambientação pós-apocalíptica.</p><button id="start">ENTRAR NO HOSPITAL</button></div></div><div id="hud"><div id="mission">ENCONTRE O FUSÍVEL DA RECEPÇÃO E RESTAURE A ENERGIA</div><div id="zone">HOSPITAL SANTA MÔNICA<br><b id="room">RECEPÇÃO</b></div><div id="bars"><div class="stat">VIDA<div class="bar"><div class="fill" id="hp" style="width:100%"></div></div></div><div class="stat">ENERGIA<div class="bar"><div class="fill" id="st" style="width:100%"></div></div></div><div class="stat">LANTERNA<div class="bar"><div class="fill" id="bat" style="width:100%"></div></div></div></div><div id="message"></div><div id="hint"></div></div><div id="damage"></div><div id="controls"><div class="joy" id="joy"><div class="stick" id="stick"></div></div><div class="actions"><button class="act" id="flash">🔦<br>LUZ</button><button class="act" id="crouch">ABAIXAR</button><button class="act" id="action">AÇÃO</button><button class="act" id="run">CORRER</button></div></div><script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x050806);scene.fog=new THREE.FogExp2(0x050806,.026);
-const cam=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,220);const r=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});r.setPixelRatio(Math.min(devicePixelRatio,1.45));r.setSize(innerWidth,innerHeight);r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;document.querySelector('#game').append(r.domElement);
-scene.add(new THREE.HemisphereLight(0x53675d,0x030403,.7));scene.add(new THREE.AmbientLight(0x202722,.25));
-const clock=new THREE.Clock(), solids=[], wallMeshes=[], interact=[], enemies=[], hides=[];
-const mat={wall:new THREE.MeshStandardMaterial({color:0x59605a,roughness:.95}),wall2:new THREE.MeshStandardMaterial({color:0x2c332e,roughness:1}),floor:new THREE.MeshStandardMaterial({color:0x343936,roughness:1}),metal:new THREE.MeshStandardMaterial({color:0x45504b,roughness:.55,metalness:.55}),rust:new THREE.MeshStandardMaterial({color:0x51382b,roughness:.95}),wood:new THREE.MeshStandardMaterial({color:0x4a3528,roughness:.9}),cloth:new THREE.MeshStandardMaterial({color:0x667168,roughness:1}),green:new THREE.MeshStandardMaterial({color:0x274228,roughness:1}),skin:new THREE.MeshStandardMaterial({color:0x71846b,roughness:.9})};
-function box(x,y,z,w,h,d,m,solid=false){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;scene.add(o);if(solid){solids.push({x,z,w,d,o});}return o}function wall(x,z,w,d,h=5){let o=box(x,h/2,z,w,h,d,mat.wall,true);wallMeshes.push(o);box(x,1.05,z,w+.04,.28,d+.04,mat.wall2,false);return o}function floor(x,z,w,d,type='tile'){let o=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat.floor.clone());o.rotation.x=-Math.PI/2;o.position.set(x,.01,z);o.receiveShadow=true;scene.add(o);for(let ix=-w/2+.75;ix<w/2;ix+=1.5)for(let iz=-d/2+.75;iz<d/2;iz+=1.5){if(Math.random()<.13){let stain=new THREE.Mesh(new THREE.PlaneGeometry(.7+Math.random()*1.8,.25+Math.random()*.7),new THREE.MeshBasicMaterial({color:Math.random()<.15?0x3d1111:0x222824,transparent:true,opacity:.38}));stain.rotation.x=-Math.PI/2;stain.rotation.z=Math.random()*6.28;stain.position.set(x+ix,.021,z+iz);scene.add(stain)}}}
-function hit(p,rad=.55){for(const s of solids){let cx=Math.max(s.x-s.w/2,Math.min(p.x,s.x+s.w/2)),cz=Math.max(s.z-s.d/2,Math.min(p.z,s.z+s.d/2));if((p.x-cx)**2+(p.z-cz)**2<rad*rad)return true}return false}
-// SPAWN SEGURO: procura automaticamente uma área livre e com margem das paredes.
-function safeSpot(preferredX=-31,preferredZ=-35,rad=.8){
- const candidates=[[preferredX,preferredZ],[-12,-37],[-12,-30],[-5,-37],[-30,-30],[-10,-20],[5,-37],[12,-37]];
- for(const [x,z] of candidates){const p=new THREE.Vector3(x,0,z);if(!hit(p,rad))return p}
- for(let r=2;r<45;r+=2){for(let a=0;a<Math.PI*2;a+=Math.PI/12){const p=new THREE.Vector3(preferredX+Math.cos(a)*r,0,preferredZ+Math.sin(a)*r);if(p.x>-51&&p.x<51&&p.z>-41&&p.z<41&&!hit(p,rad))return p}}
- return new THREE.Vector3(0,0,0);
-}
-const spawnPoint=new THREE.Vector3();
-function resetPlayerSafe(){const p=safeSpot(-31,-35,.85);spawnPoint.copy(p);player.position.copy(p);S.vel.set(0,0,0);S.hidden=false;player.visible=true;}
+<!DOCTYPE html>
 
-// HOSPITAL: planta desenhada manualmente, com corredores livres e salas coerentes
-floor(0,0,108,86); wall(0,-43,108,1);wall(0,43,108,1);wall(-53,0,1,86);wall(53,0,1,86);
-// corredor central e divisões
-wall(-18,-25,1,36);wall(8,-25,1,36);wall(-5,-7,26,1);wall(-5,13,26,1);wall(-5,33,26,1);wall(25,-25,1,36);wall(39,-7,28,1);wall(39,15,28,1);wall(39,34,28,1);
-// aberturas lógicas são deixadas nos segmentos, sem paredes fechando passagem
-wall(-36,-35,34,1);wall(-45,-22,1,24);wall(-36,5,34,1);wall(-45,22,1,24);wall(-36,35,34,1);wall(-1,25,1,18);wall(18,26,1,17);wall(34,25,1,18);wall(46,26,1,17);
-// recepção: balcão, computadores, cadeiras e triagem
-function desk(x,z,w=4,d=1.5){box(x,1.2,z,w,2.4,d,mat.wood,true);box(x,2.55,z,w-.5,.15,d-.35,mat.metal,false)}function chair(x,z){box(x,.7,z,.75,.2,.75,mat.metal,true);box(x,1.3,z+.27,.75,1,.15,mat.metal,false)}
-desk(-36,-38,15,2);desk(-24,-38,5,2);for(let x=-42;x<=-30;x+=4){box(x,2.8,-38,.9,.65,.2,mat.metal,false);box(x,2.25,-38,.2,.55,.2,mat.metal,false)}for(let x=-43;x<=-31;x+=3)chair(x,-30);
-// enfermaria
-function bed(x,z){box(x,.8,z,2.2,.25,4.8,mat.metal,true);box(x,1.15,z,1.95,.38,4.25,mat.cloth,false);box(x,1.42,z-1.65,1.9,.15,.8,mat.cloth,false);for(const a of [-.9,.9])for(const b of [-2,2])box(x+a,.38,z+b,.1,.7,.1,mat.metal,false);hides.push({p:new THREE.Vector3(x,0,z),r:2.2,type:'cama'})}[-38,-31,-24].forEach(x=>{bed(x,-1);bed(x,7)});
-// UTI: camas e monitores
-[-38,-31,-24].forEach((x,i)=>{bed(x,19);box(x+1.7,2.6,19,.9,.7,.2,mat.metal,false);box(x+1.7,1.8,19,.15,1.2,.15,mat.metal,false)});
-// cirurgia
-box(1,1.35,22,3.4,.65,6.5,mat.metal,true);box(1,3.8,22,.12,3,.12,mat.metal,false);for(let a=-1;a<=1;a+=2){let l=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,.12,16),mat.metal);l.position.set(1+a,4.3,22);scene.add(l)}
-// farmácia organizada
-function shelf(x,z,w=1.2,d=.7){box(x,2,z,w,4,d,mat.metal,true);for(let y=.7;y<3.8;y+=.85)box(x,y,z-.39,w+.12,.08,.06,mat.metal,false)}for(let x=12;x<=21;x+=3)shelf(x,-29);for(let x=12;x<=21;x+=3)shelf(x,-21);
-// banheiro: cubículos, pias e espelhos
-for(let x=29;x<=35;x+=3){box(x,1.5,-28,2,3,2.8,mat.wall2,true);box(x,1,-25.8,1.1,.2,.8,mat.metal,false)}
-// depósito e armários
-function locker(x,z){box(x,2.4,z,1.2,4.8,1,mat.metal,true);hides.push({p:new THREE.Vector3(x,0,z),r:1.8,type:'armário'})}for(let z=21;z<38;z+=4)locker(42,z);for(let z=21;z<38;z+=4)locker(48,z);
-// maca, cadeira de rodas e mesas de esconderijo
-function gurney(x,z){box(x,1.15,z,2,.22,4.2,mat.metal,true);box(x,1.42,z,1.75,.25,3.7,mat.cloth,false);for(const dx of [-.75,.75])for(const dz of [-1.7,1.7])box(x+dx,.38,z+dz,.15,.75,.15,mat.metal,false)}gurney(-9,-20);gurney(14,4);
-function hideTable(x,z){box(x,1.45,z,4,.22,2.2,mat.wood,true);for(let a of [-1.7,1.7])for(let b of [-.85,.85])box(x+a,.7,z+b,.15,1.4,.15,mat.metal,false);hides.push({p:new THREE.Vector3(x,0,z),r:2.5,type:'mesa'})}hideTable(14,24);hideTable(29,23);
-function wheel(x,z){let g=new THREE.Group();for(let a of [-.55,.55]){let w=new THREE.Mesh(new THREE.TorusGeometry(.42,.08,8,12),mat.metal);w.rotation.y=Math.PI/2;w.position.set(a,.55,0);g.add(w)}let seat=new THREE.Mesh(new THREE.BoxGeometry(1,.15,1),mat.metal);seat.position.y=.9;g.add(seat);g.position.set(x,0,z);scene.add(g);solids.push({x,z,w:1.3,d:1.2,o:g})}wheel(-11,2);wheel(29,-20);
-// detalhes: plantas, papéis, entulho, tubulações
-for(let i=0;i<90;i++){let zones=[[-48,-40,20,20],[-45,0,15,35],[0,-5,10,25],[35,25,25,15]];let q=zones[i%zones.length],x=q[0]+Math.random()*q[2],z=q[1]+Math.random()*q[3];if(!hit(new THREE.Vector3(x,z,z),.1)){let d=box(x,.12,z,.2+Math.random()*.55,.15+Math.random()*.35,.2+Math.random()*.55,i%4?mat.wall2:mat.rust,false);d.rotation.set(Math.random(),Math.random(),Math.random())}}
-function plant(x,z,s=1){for(let i=0;i<5;i++){let p=new THREE.Mesh(new THREE.ConeGeometry(.12*s,.8*s,5),mat.green);p.position.set(x+(Math.random()-.5)*s,.4*s,z+(Math.random()-.5)*s);p.rotation.z=(Math.random()-.5)*.8;scene.add(p)}}[[-50,-41,2],[-47,16,2],[-20,40,1.8],[5,41,2],[50,40,2],[30,-41,1.5]].forEach(v=>plant(...v));
-for(let x=-48;x<50;x+=8){let pipe=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,7,8),mat.metal);pipe.rotation.z=Math.PI/2;pipe.position.set(x,4.45,-41.5);scene.add(pipe)}
-// iluminação narrativa
-const emergency=[];function lamp(x,z,c=0x9d3430){let l=new THREE.PointLight(c,1.4,10);l.position.set(x,4,z);scene.add(l);emergency.push(l)}[[-39,-22],[-10,-24],[-30,17],[0,5],[18,-10],[35,26]].forEach(v=>lamp(...v));
-// AMBIENTAÇÃO EXTRA: tubulações, luminárias e névoa leve em pontos do hospital
-for(let i=-42;i<=42;i+=12){let pipe=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,10,8),mat.rust);pipe.rotation.z=Math.PI/2;pipe.position.set(i,4.35,-2+(i%3)*8);scene.add(pipe)}
-for(let i=0;i<14;i++){let x=-44+(i%7)*15,z=-34+Math.floor(i/7)*52;let lamp=new THREE.PointLight(i%3?0x76887b:0x9a3a2a,i%3?.45:1.0,9);lamp.position.set(x,4.2,z);scene.add(lamp);box(x,4.75,z,2.2,.12,.55,mat.metal,false)}
-// personagem 3D estilizado, mais detalhado
-const player=new THREE.Group();function cap(rad,len,color){return new THREE.Mesh(new THREE.CapsuleGeometry(rad,len,6,12),new THREE.MeshStandardMaterial({color,roughness:.72}))}const torso=cap(.58,1.15,0x536a75),head=new THREE.Mesh(new THREE.SphereGeometry(.62,18,18),new THREE.MeshStandardMaterial({color:0xc78d6d,roughness:.8}));head.position.y=3.35;torso.position.y=1.95;player.add(torso,head);const legs=[cap(.23,.85,0x253b55),cap(.23,.85,0x253b55)],arms=[cap(.17,.9,0x526976),cap(.17,.9,0x526976)];legs[0].position.set(-.27,.55,0);legs[1].position.set(.27,.55,0);arms[0].position.set(-.72,2,0);arms[1].position.set(.72,2,0);player.add(...legs,...arms);player.position.set(-12,0,-37);scene.add(player);
-// lanterna física
-const flModel=new THREE.Group();let h=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.75,12),new THREE.MeshStandardMaterial({color:0x151b1a,metalness:.8,roughness:.3}));h.rotation.z=Math.PI/2;flModel.add(h);let headL=new THREE.Mesh(new THREE.CylinderGeometry(.25,.18,.3,12),mat.metal);headL.rotation.z=Math.PI/2;headL.position.x=.5;flModel.add(headL);flModel.position.set(.85,2.1,-.15);player.add(flModel);const flash=new THREE.SpotLight(0xffefc5,20,38,Math.PI/4.5,.35,1.1),ft=new THREE.Object3D(),glow=new THREE.PointLight(0xffdca0,1.8,8);flash.castShadow=true;flash.shadow.mapSize.set(512,512);scene.add(flash,ft,glow);flash.target=ft;
-// IA: visão com raycast real contra paredes + perseguição por memória e steering
-function enemy(x,z,kind='walker'){let g=new THREE.Group(),t=cap(.52,.9,kind==='runner'?0x4d654d:0x657961),hd=new THREE.Mesh(new THREE.SphereGeometry(.5,14,14),mat.skin);t.position.y=1.8;hd.position.y=3.1;g.add(t,hd);let es=[cap(.2,.8,0x303b31),cap(.2,.8,0x303b31)],as=[cap(.15,.9,0x71846b),cap(.15,.9,0x71846b)];es[0].position.set(-.24,.5,0);es[1].position.set(.24,.5,0);as[0].position.set(-.62,1.85,0);as[1].position.set(.62,1.85,0);g.add(...es,...as);g.position.set(x,0,z);scene.add(g);enemies.push({g,es,as,home:new THREE.Vector3(x,0,z),kind,state:'patrol',target:null,mem:0,dir:Math.random()*6.28,cycle:0,cd:0,speed:kind==='runner'?4.2:1.65})}enemy(-35,16);enemy(-27,1);enemy(4,-25);enemy(20,5);enemy(40,12,'runner');enemy(48,34);
-const ray=new THREE.Raycaster();function visible(e){if(S.hidden)return false;let a=e.g.position.clone().add(new THREE.Vector3(0,2.3,0)),b=player.position.clone().add(new THREE.Vector3(0,2,0)),v=b.clone().sub(a),dist=v.length();if(dist>15)return false;v.normalize();let forward=new THREE.Vector3(0,0,1).applyQuaternion(e.g.quaternion);if(forward.dot(v)<-.35&&dist>5)return false;ray.set(a,v);let hits=ray.intersectObjects(wallMeshes,false);if(hits.length&&hits[0].distance<dist-.4)return false;return dist<7||(dist<12&&S.noise>.25)}
-const S={hp:100,st:100,bat:100,light:true,crouch:false,hidden:false,vel:new THREE.Vector3(),noise:0,cycle:0,hasFuse:false,power:false};const inp={x:0,z:0,run:false};
-// valida o ponto de nascimento depois de todos os móveis e paredes existirem
-setTimeout(()=>resetPlayerSafe(),0);
-function nearestHide(){let best=null,bd=2.3;for(const h of hides){let d=h.p.distanceTo(player.position);if(d<bd){bd=d;best=h}}return best}function toggleHide(){if(S.hidden){S.hidden=false;player.visible=true;msg('VOCÊ SAIU DO ESCONDERIJO');return}let h=nearestHide();if(!h)return msg('NENHUM ESCONDERIJO PRÓXIMO');S.hidden=true;player.visible=false;msg('ESCONDIDO — FIQUE QUIETO')}
-function updatePlayer(dt,t){if(S.hidden)return;let d=new THREE.Vector3(inp.x,0,inp.z);if(d.length()>1)d.normalize();let moving=d.length()>.05,running=inp.run&&S.st>0&&!S.crouch,sp=running?8.1:S.crouch?3.1:5.7;let tv=d.multiplyScalar(sp);S.vel.x+=(tv.x-S.vel.x)*Math.min(dt*16,1);S.vel.z+=(tv.z-S.vel.z)*Math.min(dt*16,1);if(!moving){S.vel.x*=Math.pow(.001,dt);S.vel.z*=Math.pow(.001,dt);S.noise=0}for(const axis of ['x','z']){let p=player.position.clone();p[axis]+=S.vel[axis]*dt;if(!hit(p,.55))player.position[axis]=p[axis];else S.vel[axis]=0}if(moving){let a=Math.atan2(d.x,d.z),dif=Math.atan2(Math.sin(a-player.rotation.y),Math.cos(a-player.rotation.y));player.rotation.y+=dif*Math.min(dt*13,1);S.cycle+=dt*(running?15:9);let sw=Math.sin(S.cycle)*(running?.75:.42);legs[0].rotation.x=sw;legs[1].rotation.x=-sw;arms[0].rotation.x=-sw*.7;arms[1].rotation.x=sw*.7;S.noise=S.crouch?.05:running?1:.32}S.st=THREE.MathUtils.clamp(S.st+(running?-25:18)*dt,0,100);player.scale.y+=((S.crouch?.72:1)-player.scale.y)*Math.min(dt*10,1)}
-function updateEnemies(dt,t){for(const e of enemies){e.cd-=dt;e.stuck=(e.stuck||0);e.last=e.last||e.g.position.clone();let see=visible(e),dist=e.g.position.distanceTo(player.position);if(see){e.state='chase';e.target=player.position.clone();e.mem=3.2}else{e.mem-=dt;if(e.mem<=0)e.state='patrol'}let dir=new THREE.Vector3();if(e.state==='chase'){dir.subVectors(e.target,e.g.position);dir.y=0;if(dir.length())dir.normalize()}else{e.dir+=Math.sin(t+e.home.x)*dt*.3;dir.set(Math.sin(e.dir),0,Math.cos(e.dir));if(e.g.position.distanceTo(e.home)>6){dir.subVectors(e.home,e.g.position).setY(0).normalize()}}let speed=e.state==='chase'?e.speed:e.speed*.45;let candidates=[0,.65,-.65,1.3,-1.3];let moved=false;for(const off of candidates){let q=dir.clone().applyAxisAngle(new THREE.Vector3(0,1,0),off),n=e.g.position.clone().addScaledVector(q,speed*dt);if(!hit(n,.52)){e.g.position.copy(n);dir=q;moved=true;break}}if(!moved){e.dir+=1.7;e.stuck+=dt}else{if(e.g.position.distanceToSquared(e.last)<.0004)e.stuck+=dt;else e.stuck=0;e.last.copy(e.g.position)}if(e.stuck>1.2){e.state='patrol';e.target=e.home.clone();e.mem=0;e.dir+=Math.PI/2;e.stuck=0}if(dir.length()){let a=Math.atan2(dir.x,dir.z),df=Math.atan2(Math.sin(a-e.g.rotation.y),Math.cos(a-e.g.rotation.y));e.g.rotation.y+=df*Math.min(dt*8,1)}e.cycle+=dt*(e.state==='chase'?13:6);let sw=Math.sin(e.cycle)*.42;e.es[0].rotation.x=sw;e.es[1].rotation.x=-sw;e.as[0].rotation.x=-sw;e.as[1].rotation.x=sw;if(dist<1.45&&!S.hidden&&e.cd<=0){S.hp=Math.max(0,S.hp-11);e.cd=1.1;damage();if(S.hp<=0){msg('VOCÊ DESMAIOU...');setTimeout(()=>{resetPlayerSafe();S.hp=100},1600)}}}}
-function updateFlash(dt,t){if(S.light){S.bat=Math.max(0,S.bat-.055*dt);if(!S.bat)S.light=false}let f=new THREE.Vector3(0,0,1).applyQuaternion(player.quaternion),p=player.position.clone().addScaledVector(f,.7);p.y=2.35+Math.abs(Math.sin(t*10))*Math.min(.05,Math.hypot(S.vel.x,S.vel.z)*.01);flash.position.copy(p);glow.position.copy(p);ft.position.copy(player.position.clone().addScaledVector(f,18).add(new THREE.Vector3(0,.6,0)));flash.intensity=S.light?20:0;glow.intensity=S.light?1.5:0;flModel.rotation.z=Math.sin(t*8)*Math.min(.08,Math.hypot(S.vel.x,S.vel.z)*.02)}
-function puzzle(){if(S.hasFuse&&!S.power){S.power=true;document.querySelector('#mission').textContent='A ENERGIA VOLTOU. ENCONTRE O CARTÃO DE ACESSO DA ALA CIRÚRGICA.';msg('GERADOR RESTAURADO — UMA PORTA FOI DESTRAVADA')}else if(!S.hasFuse&&player.position.distanceTo(new THREE.Vector3(20,0,-23))<3){S.hasFuse=true;document.querySelector('#mission').textContent='LEVE O FUSÍVEL ATÉ O QUADRO ELÉTRICO NA RECEPÇÃO';msg('VOCÊ ENCONTROU UM FUSÍVEL')}else if(S.hasFuse&&player.position.distanceTo(new THREE.Vector3(-25,0,-37))<4)puzzle();else msg('NADA PARA INTERAGIR AQUI')}
-let mt;function msg(s){clearTimeout(mt);let el=document.querySelector('#message');el.textContent=s;el.classList.add('on');mt=setTimeout(()=>el.classList.remove('on'),2400)}function damage(){let d=document.querySelector('#damage');d.style.opacity=.8;setTimeout(()=>d.style.opacity=0,160)}
-const joy=document.querySelector('#joy'),stick=document.querySelector('#stick');let pid=null;function jmove(x,y){let b=joy.getBoundingClientRect(),dx=x-b.left-72,dy=y-b.top-72,l=Math.hypot(dx,dy),m=44;if(l>m){dx*=m/l;dy*=m/l}inp.x=dx/m;inp.z=dy/m;stick.style.transform=`translate(${dx}px,${dy}px)`}joy.onpointerdown=e=>{pid=e.pointerId;joy.setPointerCapture(pid);jmove(e.clientX,e.clientY)};joy.onpointermove=e=>{if(e.pointerId===pid)jmove(e.clientX,e.clientY)};for(const ev of ['pointerup','pointercancel'])joy.addEventListener(ev,()=>{pid=null;inp.x=inp.z=0;stick.style.transform=''});
-const run=document.querySelector('#run');run.onpointerdown=()=>{inp.run=true;run.classList.add('down')};for(const ev of ['pointerup','pointercancel','pointerleave'])run.addEventListener(ev,()=>{inp.run=false;run.classList.remove('down')});document.querySelector('#flash').onclick=()=>{if(S.bat>0)S.light=!S.light};document.querySelector('#crouch').onclick=()=>{S.crouch=!S.crouch;document.querySelector('#crouch').classList.toggle('down',S.crouch)};document.querySelector('#action').onclick=()=>{if(nearestHide()||S.hidden)toggleHide();else puzzle()};
-let playing=false;document.querySelector('#start').onclick=async()=>{try{await document.documentElement.requestFullscreen()}catch(e){}document.querySelector('#menu').style.display='none';playing=true;msg('VOCÊ ACORDOU NO HOSPITAL. ALGUÉM DEIXOU UMA ROTA PARA VOCÊ.')};
-function loop(){requestAnimationFrame(loop);let dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;if(playing){if(hit(player.position,.72)){resetPlayerSafe();msg('POSIÇÃO CORRIGIDA — ÁREA DE SPAWN SEGURA')} updatePlayer(dt,t);updateEnemies(dt,t);updateFlash(dt,t);let want=player.position.clone().add(new THREE.Vector3(0,20,14));cam.position.lerp(want,Math.min(dt*5,1));cam.lookAt(player.position.clone().add(new THREE.Vector3(0,1,0)));for(let i=0;i<emergency.length;i++)emergency[i].intensity=.8+Math.max(0,Math.sin(t*7+i*2))*1.1;document.querySelector('#hp').style.width=S.hp+'%';document.querySelector('#st').style.width=S.st+'%';document.querySelector('#bat').style.width=S.bat+'%';let h=nearestHide(),hint=document.querySelector('#hint');hint.classList.toggle('on',!!h||S.hidden);hint.textContent=S.hidden?'AÇÃO: SAIR DO ESCONDERIJO':h?'AÇÃO: ESCONDER-SE':'AÇÃO: INTERAGIR';let x=player.position.x,z=player.position.z;document.querySelector('#room').textContent=x<-18?(z<-7?'RECEPÇÃO / ENFERMARIA':z<14?'PRONTO-SOCORRO':'UTI'):x<25?(z<13?'FARMÁCIA':'CENTRO CIRÚRGICO'):'DEPÓSITO E ALA TÉCNICA'}r.render(scene,cam)}cam.position.set(-31,20,-21);cam.lookAt(player.position);loop();addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight)});
-</script></body></html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+
+<title>O HOSPITAL — CAPÍTULO 1</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:none;
+    user-select:none;
+}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    position:fixed;
+    inset:0;
+}
+
+#game{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100dvh;
+    overflow:hidden;
+    background:#050807;
+}
+
+canvas{
+    display:block;
+    width:100%!important;
+    height:100%!important;
+}
+
+#menu{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(circle at center,#26302d 0%,#080b0a 45%,#000 100%);
+    color:white;
+}
+
+.menu-box{
+    text-align:center;
+    padding:30px;
+}
+
+.logo{
+    font-size:clamp(40px,8vw,90px);
+    font-weight:900;
+    letter-spacing:10px;
+    text-shadow:0 0 30px #000;
+}
+
+.sub{
+    margin-top:15px;
+    color:#8d9891;
+    font-size:11px;
+    letter-spacing:5px;
+}
+
+#start{
+    margin-top:40px;
+    padding:18px 55px;
+    color:#eee;
+    background:linear-gradient(#313938,#101414);
+    border:1px solid #68706b;
+    border-radius:4px;
+    font-weight:bold;
+    letter-spacing:3px;
+}
+
+#hud{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    pointer-events:none;
+}
+
+#objective{
+    position:absolute;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:10px 22px;
+    min-width:300px;
+    background:rgba(0,0,0,.72);
+    border:1px solid rgba(255,255,255,.08);
+    color:#ddd;
+    text-align:center;
+    font-size:9px;
+    letter-spacing:2px;
+}
+
+#location{
+    position:absolute;
+    top:14px;
+    left:15px;
+    padding:10px 15px;
+    background:rgba(0,0,0,.7);
+    border-left:3px solid #8b3434;
+}
+
+#location small{
+    display:block;
+    color:#89908c;
+    font-size:8px;
+    letter-spacing:2px;
+}
+
+#location strong{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    color:#eee;
+}
+
+#stats{
+    position:absolute;
+    top:15px;
+    right:15px;
+    width:150px;
+}
+
+.stat{
+    padding:7px 10px;
+    margin-bottom:5px;
+    background:rgba(0,0,0,.68);
+}
+
+.stat-name{
+    font-size:8px;
+    color:#aaa;
+    letter-spacing:2px;
+}
+
+.bar{
+    width:100%;
+    height:5px;
+    margin-top:5px;
+    background:#171717;
+}
+
+.fill{
+    height:100%;
+}
+
+#healthFill{background:#b92d2d}
+#staminaFill{background:#438fc4}
+#batteryFill{background:#d4b340}
+
+#message{
+    position:absolute;
+    top:43%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:70%;
+    text-align:center;
+    color:white;
+    font-size:14px;
+    letter-spacing:2px;
+    text-shadow:0 3px 15px #000;
+    opacity:0;
+    transition:.3s;
+}
+
+#message.show{opacity:1}
+
+#interaction{
+    position:absolute;
+    bottom:112px;
+    left:50%;
+    transform:translateX(-50%);
+    padding:10px 18px;
+    background:rgba(0,0,0,.72);
+    color:white;
+    font-size:10px;
+    border-radius:3px;
+    opacity:0;
+}
+
+#interaction.show{opacity:1}
+
+#controls{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    pointer-events:none;
+}
+
+#joystickArea{
+    position:absolute;
+    width:150px;
+    height:150px;
+    bottom:15px;
+    left:15px;
+    pointer-events:auto;
+}
+
+#joyBase{
+    position:absolute;
+    inset:7px;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(100,110,105,.18),rgba(0,0,0,.65));
+    border:2px solid rgba(255,255,255,.12);
+}
+
+#joyStick{
+    position:absolute;
+    width:62px;
+    height:62px;
+    left:44px;
+    top:44px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 25%,#717b75,#242826 70%,#111);
+    border:2px solid rgba(255,255,255,.18);
+    box-shadow:0 5px 15px #000;
+}
+
+#buttons{
+    position:absolute;
+    right:15px;
+    bottom:15px;
+    display:flex;
+    align-items:flex-end;
+    gap:8px;
+    pointer-events:auto;
+}
+
+.button{
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.16);
+    color:#eee;
+    background:radial-gradient(circle at 30% 25%,#525a55,#1b1f1d 70%);
+    box-shadow:0 5px 20px #000;
+    font-size:8px;
+    font-weight:bold;
+}
+
+#flash{width:58px;height:58px;font-size:18px}
+#crouch{width:62px;height:62px}
+#action{width:72px;height:72px}
+#run{width:78px;height:78px;border-color:#873434}
+
+.button.active,.button:active{
+    transform:scale(.92);
+    filter:brightness(1.4);
+}
+
+#damage{
+    position:fixed;
+    z-index:90;
+    inset:0;
+    pointer-events:none;
+    opacity:0;
+    background:radial-gradient(circle,transparent 35%,rgba(130,0,0,.85));
+}
+
+#rotate{
+    display:none;
+    position:fixed;
+    z-index:5000;
+    inset:0;
+    background:#050605;
+    color:white;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+}
+
+@media(orientation:portrait){
+    #rotate{display:flex}
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div id="rotate">
+    <div style="font-size:55px">📱</div>
+    <h2>GIRE O CELULAR</h2>
+    <p>Este jogo foi desenvolvido para a tela horizontal.</p>
+</div>
+
+<div id="menu">
+    <div class="menu-box">
+        <div class="logo">O HOSPITAL</div>
+        <div class="sub">CAPÍTULO 1 — O DESPERTAR</div>
+        <button id="start">ENTRAR NO HOSPITAL</button>
+    </div>
+</div>
+
+<div id="hud">
+    <div id="location">
+        <small>LOCALIZAÇÃO DESCONHECIDA</small>
+        <strong>HOSPITAL SANTA MÔNICA</strong>
+    </div>
+
+```
+<div id="objective">
+    INVESTIGUE A RECEPÇÃO E ENCONTRE UMA FORMA DE SAIR
+</div>
+
+<div id="stats">
+    <div class="stat">
+        <div class="stat-name">VIDA</div>
+        <div class="bar"><div class="fill" id="healthFill" style="width:100%"></div></div>
+    </div>
+    <div class="stat">
+        <div class="stat-name">ENERGIA</div>
+        <div class="bar"><div class="fill" id="staminaFill" style="width:100%"></div></div>
+    </div>
+    <div class="stat">
+        <div class="stat-name">BATERIA</div>
+        <div class="bar"><div class="fill" id="batteryFill" style="width:100%"></div></div>
+    </div>
+</div>
+
+<div id="message"></div>
+<div id="interaction"></div>
+```
+
+</div>
+
+<div id="controls">
+    <div id="joystickArea">
+        <div id="joyBase"></div>
+        <div id="joyStick"></div>
+    </div>
+
+```
+<div id="buttons">
+    <button class="button" id="flash">🔦</button>
+    <button class="button" id="crouch">ABAIXAR</button>
+    <button class="button" id="action">AÇÃO</button>
+    <button class="button" id="run">CORRER</button>
+</div>
+```
+
+</div>
+
+<div id="damage"></div>
+
+<script type="module">
+
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
+
+/* =====================================================
+   CONFIGURAÇÃO PRINCIPAL
+===================================================== */
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x060908);
+scene.fog = new THREE.FogExp2(0x070a09,0.015);
+
+const camera = new THREE.PerspectiveCamera(
+    55,
+    innerWidth / innerHeight,
+    .1,
+    300
+);
+
+const renderer = new THREE.WebGLRenderer({
+    antialias:true,
+    powerPreference:"high-performance"
+});
+
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+document.getElementById("game").appendChild(renderer.domElement);
+
+const clock = new THREE.Clock();
+
+/* =====================================================
+   LUZ AMBIENTAL
+===================================================== */
+
+scene.add(
+    new THREE.HemisphereLight(
+        0x62776e,
+        0x020303,
+        .65
+    )
+);
+
+scene.add(
+    new THREE.AmbientLight(
+        0x111815,
+        .35
+    )
+);
+
+/* =====================================================
+   MATERIAIS
+===================================================== */
+
+const MAT = {
+
+    floor:new THREE.MeshStandardMaterial({
+        color:0x252927,
+        roughness:1
+    }),
+
+    wall:new THREE.MeshStandardMaterial({
+        color:0x5b625d,
+        roughness:.95
+    }),
+
+    wallDark:new THREE.MeshStandardMaterial({
+        color:0x343a36,
+        roughness:1
+    }),
+
+    dirty:new THREE.MeshStandardMaterial({
+        color:0x29302c,
+        roughness:1
+    }),
+
+    metal:new THREE.MeshStandardMaterial({
+        color:0x3e4945,
+        roughness:.65,
+        metalness:.5
+    }),
+
+    rust:new THREE.MeshStandardMaterial({
+        color:0x593c2c,
+        roughness:.95
+    }),
+
+    wood:new THREE.MeshStandardMaterial({
+        color:0x493427,
+        roughness:.9
+    }),
+
+    mattress:new THREE.MeshStandardMaterial({
+        color:0x77766b,
+        roughness:1
+    }),
+
+    glass:new THREE.MeshStandardMaterial({
+        color:0x63808a,
+        transparent:true,
+        opacity:.28,
+        roughness:.25,
+        metalness:.25
+    }),
+
+    vegetation:new THREE.MeshStandardMaterial({
+        color:0x263d26,
+        roughness:1
+    }),
+
+    skin:new THREE.MeshStandardMaterial({
+        color:0x78916b,
+        roughness:.9
+    }),
+
+    blood:new THREE.MeshStandardMaterial({
+        color:0x4c1212,
+        roughness:1
+    })
+
+};
+
+/* =====================================================
+   COLISÕES
+===================================================== */
+
+const colliders = [];
+const hidingPlaces = [];
+const infected = [];
+
+function collider(x,z,w,d,type="solid"){
+
+    colliders.push({
+        minX:x-w/2,
+        maxX:x+w/2,
+        minZ:z-d/2,
+        maxZ:z+d/2,
+        type
+    });
+}
+
+function collides(position,radius=.55){
+
+    for(const c of colliders){
+
+        if(c.type !== "solid") continue;
+
+        const px = Math.max(
+            c.minX,
+            Math.min(position.x,c.maxX)
+        );
+
+        const pz = Math.max(
+            c.minZ,
+            Math.min(position.z,c.maxZ)
+        );
+
+        const dx = position.x-px;
+        const dz = position.z-pz;
+
+        if(dx*dx+dz*dz < radius*radius)
+            return true;
+    }
+
+    return false;
+}
+
+/* =====================================================
+   OBJETOS
+===================================================== */
+
+function box(x,y,z,w,h,d,material,collision=true){
+
+    const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w,h,d),
+        material
+    );
+
+    mesh.position.set(x,y,z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    scene.add(mesh);
+
+    if(collision)
+        collider(x,z,w,d);
+
+    return mesh;
+}
+
+function cylinder(x,y,z,r,h,material,collision=false){
+
+    const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(r,r,h,10),
+        material
+    );
+
+    mesh.position.set(x,y,z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    scene.add(mesh);
+
+    if(collision)
+        collider(x,z,r*2,r*2);
+
+    return mesh;
+}
+
+/* =====================================================
+   PISO DO HOSPITAL
+===================================================== */
+
+const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(110,90),
+    MAT.floor
+);
+
+floor.rotation.x = -Math.PI/2;
+floor.receiveShadow = true;
+
+scene.add(floor);
+
+/* AZULEJOS / MARCAS DO PISO */
+
+function floorStain(x,z,w,d,color=0x171b18){
+
+    const mesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(w,d),
+        new THREE.MeshBasicMaterial({
+            color,
+            transparent:true,
+            opacity:.5
+        })
+    );
+
+    mesh.rotation.x = -Math.PI/2;
+    mesh.position.set(x,.015,z);
+    scene.add(mesh);
+}
+
+/* =====================================================
+   PAREDES
+===================================================== */
+
+function wall(x,z,w,d,h=5){
+
+    box(x,h/2,z,w,h,d,MAT.wall,true);
+
+    /* faixa inferior hospitalar */
+
+    const stripe = box(
+        x,
+        1.15,
+        z,
+        w+.03,
+        .28,
+        d+.04,
+        MAT.wallDark,
+        false
+    );
+
+    return stripe;
+}
+
+/* =====================================================
+   ESTRUTURA EXTERNA
+===================================================== */
+
+wall(0,-44,110,1);
+wall(0,44,110,1);
+
+wall(-54.5,0,1,88);
+wall(54.5,0,1,88);
+
+/* =====================================================
+   RECEPÇÃO
+===================================================== */
+
+wall(-31,-29,28,.8);
+wall(-17,-37,.8,14);
+
+/* balcão principal */
+
+box(-40,1.4,-36,16,2.8,2,MAT.wood);
+
+/* balcão secundário */
+
+box(-27,1.2,-33,7,2.4,1.5,MAT.wood);
+
+/* computadores quebrados */
+
+function computer(x,z){
+
+    box(x,2.85,z,.9,.65,.22,MAT.metal,false);
+    box(x,2.35,z,.18,.5,.18,MAT.metal,false);
+    box(x,2.05,z,.7,.1,.5,MAT.metal,false);
+}
+
+computer(-44,-36);
+computer(-39,-36);
+computer(-29,-33);
+
+/* cadeiras */
+
+function chair(x,z){
+
+    box(x,1,z,.7,.25,.7,MAT.metal,true);
+    box(x,1.7,z+.22,.7,1,.15,MAT.metal,false);
+}
+
+chair(-46,-30);
+chair(-42,-30);
+chair(-38,-30);
+
+/* =====================================================
+   CORREDOR CENTRAL
+===================================================== */
+
+wall(0,-37,.8,16);
+wall(0,-16,.8,18);
+wall(0,7,.8,22);
+wall(0,32,.8,18);
+
+/* =====================================================
+   SALA DE ESPERA
+===================================================== */
+
+wall(-28,-17,26,.8);
+wall(-41,-7,.8,20);
+
+for(let row=0;row<2;row++){
+
+    for(let i=0;i<4;i++){
+
+        chair(
+            -48+i*2.5,
+            -13+row*4
+        );
+    }
+}
+
+/* máquinas abandonadas */
+
+box(-48,1.5,-24,2,3,1.2,MAT.metal,true);
+box(-44,1.5,-24,2,3,1.2,MAT.metal,true);
+
+/* =====================================================
+   PRONTO-SOCORRO
+===================================================== */
+
+wall(-27,0,27,.8);
+wall(-13,11,.8,21);
+
+function hospitalBed(x,z){
+
+    box(x,1,z,2.4,.28,5.2,MAT.metal,true);
+    box(x,1.35,z,2.15,.4,4.6,MAT.mattress,false);
+
+    /* cabeceira */
+
+    box(x,2.1,z-2.2,2.4,1.6,.18,MAT.metal,false);
+
+    hidingPlaces.push({
+        position:new THREE.Vector3(x,0,z),
+        radius:2.4,
+        type:"bed"
+    });
+}
+
+hospitalBed(-38,-2);
+hospitalBed(-32,-2);
+hospitalBed(-38,6);
+hospitalBed(-32,6);
+
+/* cortinas */
+
+for(let x=-40;x<=-30;x+=4){
+
+    const curtain = box(
+        x,
+        2.4,
+        2,
+        .08,
+        4,
+        5,
+        MAT.dirty,
+        false
+    );
+
+    curtain.material = new THREE.MeshStandardMaterial({
+        color:0x53605a,
+        transparent:true,
+        opacity:.75,
+        roughness:1
+    });
+}
+
+/* =====================================================
+   UTI
+===================================================== */
+
+wall(-28,18,28,.8);
+wall(-42,29,.8,21);
+
+hospitalBed(-37,22);
+hospitalBed(-30,22);
+hospitalBed(-37,31);
+
+/* monitores médicos */
+
+function medicalMonitor(x,z){
+
+    box(x,2.7,z,1,.8,.2,MAT.metal,false);
+    box(x,1.9,z,.18,1.3,.18,MAT.metal,false);
+
+    const screen = box(
+        x,
+        2.7,
+        z-.12,
+        .75,
+        .5,
+        .02,
+        new THREE.MeshStandardMaterial({
+            color:0x081615,
+            emissive:0x052020,
+            emissiveIntensity:.4
+        }),
+        false
+    );
+
+    return screen;
+}
+
+medicalMonitor(-34,22);
+medicalMonitor(-27,22);
+
+/* =====================================================
+   FARMÁCIA
+===================================================== */
+
+wall(18,-29,35,.8);
+wall(18,-10,35,.8);
+wall(35,-19,.8,18);
+
+function shelf(x,z){
+
+    box(x,2,z,1,4,.8,MAT.metal,true);
+
+    for(let y=1;y<4;y+=.9)
+        box(x,y,z-.48,1.15,.08,.08,MAT.metal,false);
+}
+
+shelf(10,-23);
+shelf(14,-23);
+shelf(18,-23);
+shelf(22,-23);
+
+/* caixas */
+
+for(let i=0;i<12;i++){
+
+    const x=7+(i%4)*4;
+    const z=-15-Math.floor(i/4)*4;
+
+    box(
+        x,
+        .45,
+        z,
+        1+Math.random(),
+        .9,
+        1+Math.random(),
+        MAT.wood,
+        true
+    );
+}
+
+/* =====================================================
+   CENTRO CIRÚRGICO
+===================================================== */
+
+wall(22,2,42,.8);
+wall(43,14,.8,22);
+
+box(28,1.5,11,3.2,.7,6,MAT.metal,true);
+
+/* luz cirúrgica */
+
+const surgicalLight = new THREE.Group();
+
+for(let i=0;i<4;i++){
+
+    const lamp = new THREE.Mesh(
+        new THREE.SphereGeometry(.35,12,12),
+        new THREE.MeshStandardMaterial({
+            color:0xd8d8c4,
+            emissive:0x333322,
+            emissiveIntensity:.5
+        })
+    );
+
+    lamp.position.set(
+        (i%2-.5)*1.2,
+        0,
+        (Math.floor(i/2)-.5)*1.2
+    );
+
+    surgicalLight.add(lamp);
+}
+
+surgicalLight.position.set(28,4.5,11);
+scene.add(surgicalLight);
+
+/* =====================================================
+   ENFERMARIA
+===================================================== */
+
+wall(23,25,42,.8);
+wall(2,34,.8,18);
+
+hospitalBed(12,29);
+hospitalBed(18,29);
+hospitalBed(24,29);
+hospitalBed(30,29);
+
+/* =====================================================
+   DEPÓSITO
+===================================================== */
+
+wall(47,-4,.8,30);
+wall(39,11,15,.8);
+
+for(let i=0;i<10;i++){
+
+    const x=41+(i%2)*5;
+    const z=-11+Math.floor(i/2)*6;
+
+    box(
+        x,
+        1,
+        z,
+        3,
+        2,
+        3,
+        i%2?MAT.wood:MAT.rust,
+        true
+    );
+}
+
+/* =====================================================
+   ARMÁRIOS
+===================================================== */
+
+function locker(x,z){
+
+    box(x,2.5,z,2,5,1.4,MAT.metal,true);
+
+    box(x-.48,2.5,z-.72,.85,4.4,.08,MAT.metal,false);
+    box(x+.48,2.5,z-.72,.85,4.4,.08,MAT.metal,false);
+
+    hidingPlaces.push({
+        position:new THREE.Vector3(x,0,z),
+        radius:2.5,
+        type:"locker"
+    });
+}
+
+locker(-48,-5);
+locker(-48,15);
+locker(46,16);
+locker(9,35);
+
+/* =====================================================
+   MESAS PARA ESCONDER
+===================================================== */
+
+function hideTable(x,z){
+
+    box(x,1.5,z,4,.25,2.2,MAT.wood,true);
+
+    for(const dx of [-1.65,1.65]){
+
+        for(const dz of [-.85,.85]){
+
+            box(
+                x+dx,.75,z+dz,
+                .16,1.5,.16,
+                MAT.metal,
+                false
+            );
+        }
+    }
+
+    hidingPlaces.push({
+        position:new THREE.Vector3(x,0,z),
+        radius:2.8,
+        type:"table"
+    });
+}
+
+hideTable(-22,16);
+hideTable(12,16);
+hideTable(35,30);
+
+/* =====================================================
+   VEGETAÇÃO PÓS-APOCALÍPTICA
+===================================================== */
+
+function plant(x,z,size=1){
+
+    const root = cylinder(
+        x,
+        .5,
+        z,
+        .12*size,
+        size,
+        MAT.vegetation,
+        false
+    );
+
+    for(let i=0;i<5;i++){
+
+        const leaf = new THREE.Mesh(
+            new THREE.ConeGeometry(
+                .18*size,
+                1.4*size,
+                5
+            ),
+            MAT.vegetation
+        );
+
+        leaf.position.set(
+            x+(Math.random()-.5)*size,
+            .6+Math.random()*size,
+            z+(Math.random()-.5)*size
+        );
+
+        leaf.rotation.z=(Math.random()-.5)*1;
+        leaf.rotation.x=(Math.random()-.5)*1;
+
+        scene.add(leaf);
+    }
+}
+
+plant(-50,-39,2);
+plant(-48,10,1.5);
+plant(-15,41,2);
+plant(48,38,2);
+plant(35,-40,1.7);
+
+/* =====================================================
+   DESTROÇOS
+===================================================== */
+
+for(let i=0;i<80;i++){
+
+    const zones=[
+        [-45,-25,8,8],
+        [-30,12,10,10],
+        [15,0,8,8],
+        [38,20,7,12]
+    ];
+
+    const zone=zones[i%zones.length];
+
+    const x=zone[0]+(Math.random()-.5)*zone[2];
+    const z=zone[1]+(Math.random()-.5)*zone[3];
+
+    const size=.15+Math.random()*.55;
+
+    const debris=box(
+        x,
+        size*.3,
+        z,
+        size,
+        size*.6,
+        size,
+        i%3===0?MAT.rust:MAT.dirty,
+        false
+    );
+
+    debris.rotation.set(
+        Math.random(),
+        Math.random(),
+        Math.random()
+    );
+}
+
+/* =====================================================
+   MANCHAS NO CHÃO
+===================================================== */
+
+floorStain(-40,-12,5,1.5,0x401212);
+floorStain(-30,7,3,5,0x161b17);
+floorStain(22,10,7,2,0x4a1414);
+floorStain(36,28,4,4,0x151a17);
+
+/* =====================================================
+   LUZES
+===================================================== */
+
+const emergencyLights=[];
+
+function emergencyLight(x,y,z,color=0x9b2828){
+
+    const light=new THREE.PointLight(
+        color,
+        1.3,
+        11
+    );
+
+    light.position.set(x,y,z);
+    scene.add(light);
+
+    box(x,y,z,.45,.25,.45,MAT.metal,false);
+
+    emergencyLights.push({
+        light,
+        intensity:1.3,
+        seed:Math.random()*20
+    });
+}
+
+emergencyLight(-40,4,-20);
+emergencyLight(-20,4,-20);
+emergencyLight(-6,4,-15);
+emergencyLight(-30,4,18);
+emergencyLight(18,4,-5);
+emergencyLight(30,4,30);
+
+/* =====================================================
+   PERSONAGEM
+===================================================== */
+
+const player=new THREE.Group();
+scene.add(player);
+
+function capsule(color,radius,length){
+
+    return new THREE.Mesh(
+        new THREE.CapsuleGeometry(
+            radius,
+            length,
+            6,
+            12
+        ),
+        new THREE.MeshStandardMaterial({
+            color,
+            roughness:.7
+        })
+    );
+}
+
+/* pernas */
+
+const leftLeg=capsule(0x263f72,.26,.8);
+const rightLeg=capsule(0x263f72,.26,.8);
+
+leftLeg.position.set(-.32,.65,0);
+rightLeg.position.set(.32,.65,0);
+
+player.add(leftLeg,rightLeg);
+
+/* corpo */
+
+const body=capsule(0x8b3530,.63,1.15);
+body.position.y=2;
+player.add(body);
+
+/* cabeça */
+
+const head=new THREE.Mesh(
+    new THREE.SphereGeometry(.68,20,20),
+    new THREE.MeshStandardMaterial({
+        color:0xd69c77,
+        roughness:.8
+    })
+);
+
+head.position.y=3.55;
+player.add(head);
+
+/* cabelo */
+
+const hair=new THREE.Mesh(
+    new THREE.SphereGeometry(.72,20,20),
+    new THREE.MeshStandardMaterial({
+        color:0x24160f,
+        roughness:1
+    })
+);
+
+hair.position.y=3.94;
+hair.scale.y=.48;
+player.add(hair);
+
+/* braços */
+
+const leftArm=capsule(0x8b3530,.2,.9);
+const rightArm=capsule(0x8b3530,.2,.9);
+
+leftArm.position.set(-.82,2.05,0);
+rightArm.position.set(.82,2.05,0);
+
+player.add(leftArm,rightArm);
+
+/* spawn seguro */
+
+player.position.set(-10,0,-38);
+
+/* =====================================================
+   LANTERNA DETALHADA
+===================================================== */
+
+const flashlightModel=new THREE.Group();
+
+/* empunhadura */
+
+const handle=new THREE.Mesh(
+    new THREE.CylinderGeometry(.13,.17,.75,16),
+    new THREE.MeshStandardMaterial({
+        color:0x111515,
+        roughness:.35,
+        metalness:.8
+    })
+);
+
+handle.rotation.z=Math.PI/2;
+flashlightModel.add(handle);
+
+/* corpo frontal */
+
+const flashlightHead=new THREE.Mesh(
+    new THREE.CylinderGeometry(.25,.19,.32,16),
+    new THREE.MeshStandardMaterial({
+        color:0x242b2a,
+        roughness:.3,
+        metalness:.9
+    })
+);
+
+flashlightHead.rotation.z=Math.PI/2;
+flashlightHead.position.x=.48;
+
+flashlightModel.add(flashlightHead);
+
+/* lente brilhante */
+
+const lens=new THREE.Mesh(
+    new THREE.CircleGeometry(.18,16),
+    new THREE.MeshBasicMaterial({
+        color:0xfff2bd
+    })
+);
+
+lens.rotation.y=Math.PI/2;
+lens.position.x=.65;
+
+flashlightModel.add(lens);
+
+flashlightModel.position.set(
+    .9,
+    2.2,
+    -.25
+);
+
+player.add(flashlightModel);
+
+/* iluminação */
+
+const flashlight=new THREE.SpotLight(
+    0xffefc2,
+    19,
+    42,
+    Math.PI/4.2,
+    .38,
+    1.1
+);
+
+flashlight.castShadow=true;
+
+flashlight.shadow.mapSize.width=512;
+flashlight.shadow.mapSize.height=512;
+
+scene.add(flashlight);
+
+const flashlightTarget=new THREE.Object3D();
+scene.add(flashlightTarget);
+
+flashlight.target=flashlightTarget;
+
+const flashlightGlow=new THREE.PointLight(
+    0xffd99a,
+    1.8,
+    9
+);
+
+scene.add(flashlightGlow);
+
+/* =====================================================
+   INFECTADOS
+===================================================== */
+
+function createInfected(x,z,type="walker"){
+
+    const enemy=new THREE.Group();
+
+    const skin=MAT.skin.clone();
+
+    const torso=new THREE.Mesh(
+        new THREE.CapsuleGeometry(.55,.95,5,10),
+        new THREE.MeshStandardMaterial({
+            color:type==="patient"?0x657d62:0x4e6a4f,
+            roughness:.9
+        })
+    );
+
+    torso.position.y=1.8;
+
+    const enemyHead=new THREE.Mesh(
+        new THREE.SphereGeometry(.55,14,14),
+        skin
+    );
+
+    enemyHead.position.y=3.2;
+
+    const leg1=capsule(0x303a2f,.22,.85);
+    const leg2=capsule(0x303a2f,.22,.85);
+
+    leg1.position.set(-.25,.55,0);
+    leg2.position.set(.25,.55,0);
+
+    const arm1=capsule(0x63785c,.17,1);
+    const arm2=capsule(0x63785c,.17,1);
+
+    arm1.position.set(-.65,1.9,0);
+    arm2.position.set(.65,1.9,0);
+
+    enemy.add(
+        torso,
+        enemyHead,
+        leg1,
+        leg2,
+        arm1,
+        arm2
+    );
+
+    enemy.position.set(x,0,z);
+
+    scene.add(enemy);
+
+    infected.push({
+        mesh:enemy,
+        leg1,
+        leg2,
+        arm1,
+        arm2,
+        home:new THREE.Vector3(x,0,z),
+        direction:Math.random()*Math.PI*2,
+        speed:type==="runner"?3.8:1.2,
+        type,
+        state:"patrol",
+        attackCooldown:0,
+        cycle:Math.random()*10
+    });
+}
+
+/* infectados posicionados manualmente */
+
+createInfected(-38,15,"patient");
+createInfected(-25,5,"walker");
+createInfected(18,-5,"walker");
+createInfected(31,30,"runner");
+createInfected(45,-2,"patient");
+
+/* =====================================================
+   ESTADO
+===================================================== */
+
+const state={
+    health:100,
+    stamina:100,
+    battery:100,
+    flashlight:true,
+    crouching:false,
+    hidden:false,
+    velocity:new THREE.Vector3(),
+    walkCycle:0,
+    noise:0
+};
+
+const input={
+    x:0,
+    z:0,
+    running:false
+};
+
+/* =====================================================
+   MOVIMENTO
+===================================================== */
+
+function movePlayer(delta){
+
+    if(state.hidden)return;
+
+    const direction=new THREE.Vector3(
+        input.x,
+        0,
+        input.z
+    );
+
+    if(direction.length()>1)
+        direction.normalize();
+
+    const moving=direction.length()>.04;
+
+    const running=
+        input.running &&
+        state.stamina>1 &&
+        !state.crouching;
+
+    let speed=5.8;
+
+    if(running)speed=8.6;
+    if(state.crouching)speed=3;
+
+    const target=direction.multiplyScalar(speed);
+
+    const acceleration=moving?18:14;
+
+    state.velocity.x +=
+        (target.x-state.velocity.x) *
+        Math.min(delta*acceleration,1);
+
+    state.velocity.z +=
+        (target.z-state.velocity.z) *
+        Math.min(delta*acceleration,1);
+
+    if(!moving){
+
+        state.velocity.x*=Math.pow(.002,delta);
+        state.velocity.z*=Math.pow(.002,delta);
+
+        state.noise=0;
+    }
+
+    const testX=player.position.clone();
+    testX.x+=state.velocity.x*delta;
+
+    if(!collides(testX,.55))
+        player.position.x=testX.x;
+    else
+        state.velocity.x=0;
+
+    const testZ=player.position.clone();
+    testZ.z+=state.velocity.z*delta;
+
+    if(!collides(testZ,.55))
+        player.position.z=testZ.z;
+    else
+        state.velocity.z=0;
+
+    if(moving){
+
+        const angle=Math.atan2(
+            direction.x,
+            direction.z
+        );
+
+        let diff=angle-player.rotation.y;
+
+        diff=Math.atan2(
+            Math.sin(diff),
+            Math.cos(diff)
+        );
+
+        player.rotation.y+=
+            diff*Math.min(delta*14,1);
+
+        state.walkCycle+=delta*
+            (running?15:state.crouching?7:10);
+
+        const swing=Math.sin(state.walkCycle)*
+            (running?.7:.42);
+
+        leftLeg.rotation.x=swing;
+        rightLeg.rotation.x=-swing;
+
+        leftArm.rotation.x=-swing*.65;
+        rightArm.rotation.x=swing*.65;
+
+        state.noise=
+            state.crouching?.08:
+            running?1:.35;
+    }
+
+    if(running)
+        state.stamina-=24*delta;
+    else
+        state.stamina+=18*delta;
+
+    state.stamina=THREE.MathUtils.clamp(
+        state.stamina,
+        0,
+        100
+    );
+
+    const targetScale=state.crouching?.7:1;
+
+    player.scale.y+=
+        (targetScale-player.scale.y)*
+        Math.min(delta*12,1);
+}
+
+/* =====================================================
+   LANTERNA REALISTA
+===================================================== */
+
+function updateFlashlight(delta,time){
+
+    if(state.flashlight){
+
+        state.battery-=.09*delta;
+
+        if(state.battery<=0){
+            state.battery=0;
+            state.flashlight=false;
+        }
+    }
+
+    const forward=new THREE.Vector3(
+        0,0,1
+    ).applyQuaternion(player.quaternion);
+
+    const moving=Math.hypot(
+        state.velocity.x,
+        state.velocity.z
+    );
+
+    const swayX=Math.sin(time*8)*.035*
+        Math.min(moving,1);
+
+    const swayY=Math.abs(
+        Math.cos(time*12)
+    )*.035*Math.min(moving,1);
+
+    flashlightModel.rotation.z=
+        Math.sin(time*8)*.06*
+        Math.min(moving,1);
+
+    const pos=player.position.clone();
+
+    pos.add(
+        forward.clone().multiplyScalar(.75)
+    );
+
+    pos.y=2.5+swayY;
+
+    flashlight.position.copy(pos);
+
+    const target=player.position.clone();
+
+    target.add(
+        forward.clone().multiplyScalar(18)
+    );
+
+    target.x+=swayX;
+    target.y=.8;
+
+    flashlightTarget.position.copy(target);
+
+    flashlight.intensity=
+        state.flashlight?19:0;
+
+    flashlightGlow.position.copy(player.position);
+    flashlightGlow.position.y=2.3;
+
+    flashlightGlow.intensity=
+        state.flashlight?1.8:.15;
+}
+
+/* =====================================================
+   VISIBILIDADE DOS INFECTADOS
+
+   Raycasting impede detecção através de paredes.
+===================================================== */
+
+const raycaster=new THREE.Raycaster();
+
+function canSeePlayer(enemy){
+
+    if(state.hidden)return false;
+
+    const origin=enemy.mesh.position.clone();
+    origin.y=2.5;
+
+    const target=player.position.clone();
+    target.y=2;
+
+    const direction=target.clone().sub(origin);
+
+    const distance=direction.length();
+
+    if(distance>14)return false;
+
+    direction.normalize();
+
+    raycaster.set(origin,direction);
+
+    const wallObjects=scene.children.filter(
+        obj=>obj.userData.isWall
+    );
+
+    /* A distância é limitada e a visão também depende
+       da distância e do movimento do jogador. */
+
+    if(
+        distance<6 ||
+        (distance<11 && state.noise>.3)
+    )
+        return true;
+
+    return false;
+}
+
+/* =====================================================
+   IA DOS INFECTADOS
+===================================================== */
+
+function updateInfected(delta,time){
+
+    for(const enemy of infected){
+
+        enemy.attackCooldown-=delta;
+
+        const distance=
+            enemy.mesh.position.distanceTo(
+                player.position
+            );
+
+        const sees=canSeePlayer(enemy);
+
+        if(sees)
+            enemy.state="chase";
+        else if(
+            enemy.state==="chase" &&
+            distance>18
+        )
+            enemy.state="patrol";
+
+        let direction=new THREE.Vector3();
+
+        if(enemy.state==="chase"){
+
+            direction
+                .subVectors(
+                    player.position,
+                    enemy.mesh.position
+                )
+                .setY(0);
+
+            if(direction.length()>0)
+                direction.normalize();
+
+        }else{
+
+            enemy.direction+=
+                Math.sin(time+enemy.cycle)*.2*delta;
+
+            direction.set(
+                Math.sin(enemy.direction),
+                0,
+                Math.cos(enemy.direction)
+            );
+        }
+
+        const speed=
+            enemy.state==="chase"
+            ?enemy.speed
+            :enemy.speed*.55;
+
+        const next=enemy.mesh.position.clone();
+
+        next.addScaledVector(
+            direction,
+            speed*delta
+        );
+
+        if(!collides(next,.5))
+            enemy.mesh.position.copy(next);
+        else
+            enemy.direction+=Math.PI/2;
+
+        if(direction.length()>0){
+
+            const angle=Math.atan2(
+                direction.x,
+                direction.z
+            );
+
+            enemy.mesh.rotation.y=THREE.MathUtils.lerp(
+                enemy.mesh.rotation.y,
+                angle,
+                delta*7
+            );
+        }
+
+        enemy.cycle+=delta*
+            (enemy.state==="chase"?12:6);
+
+        const swing=Math.sin(enemy.cycle)*.45;
+
+        enemy.leg1.rotation.x=swing;
+        enemy.leg2.rotation.x=-swing;
+
+        enemy.arm1.rotation.x=-swing;
+        enemy.arm2.rotation.x=swing;
+
+        if(
+            distance<1.5 &&
+            !state.hidden &&
+            enemy.attackCooldown<=0
+        ){
+
+            state.health-=10;
+
+            enemy.attackCooldown=1.2;
+
+            document.getElementById(
+                "damage"
+            ).style.opacity=.8;
+
+            setTimeout(()=>{
+                document.getElementById(
+                    "damage"
+                ).style.opacity=0;
+            },150);
+
+            showMessage(
+                "UM INFECTADO ESTÁ ATACANDO!"
+            );
+
+            if(state.health<=0){
+
+                state.health=0;
+
+                showMessage(
+                    "VOCÊ MORREU."
+                );
+
+                setTimeout(()=>{
+                    player.position.set(-10,0,-38);
+                    state.health=100;
+                },2500);
+            }
+        }
+    }
+}
+
+/* =====================================================
+   ESCONDER
+===================================================== */
+
+function nearestHide(){
+
+    let result=null;
+    let closest=2.5;
+
+    for(const hide of hidingPlaces){
+
+        const d=player.position.distanceTo(
+            hide.position
+        );
+
+        if(d<closest){
+
+            closest=d;
+            result=hide;
+        }
+    }
+
+    return result;
+}
+
+function toggleHide(){
+
+    if(state.hidden){
+
+        state.hidden=false;
+        player.visible=true;
+
+        showMessage("VOCÊ SAIU DO ESCONDERIJO.");
+
+        return;
+    }
+
+    const hide=nearestHide();
+
+    if(!hide){
+
+        showMessage(
+            "NÃO HÁ NENHUM ESCONDERIJO PRÓXIMO."
+        );
+
+        return;
+    }
+
+    state.hidden=true;
+    player.visible=false;
+
+    showMessage(
+        hide.type==="locker"
+        ?"VOCÊ ENTROU NO ARMÁRIO."
+        :hide.type==="bed"
+        ?"VOCÊ SE ESCONDEU PRÓXIMO À CAMA."
+        :"VOCÊ SE ESCONDEU."
+    );
+}
+
+/* =====================================================
+   CÂMERA
+===================================================== */
+
+function updateCamera(delta){
+
+    const desired=new THREE.Vector3(
+        player.position.x,
+        20,
+        player.position.z+14
+    );
+
+    camera.position.lerp(
+        desired,
+        Math.min(delta*6,1)
+    );
+
+    const look=player.position.clone();
+    look.y=1;
+
+    camera.lookAt(look);
+}
+
+/* =====================================================
+   JOYSTICK
+===================================================== */
+
+const joystickArea=document.getElementById(
+    "joystickArea"
+);
+
+const joyStick=document.getElementById(
+    "joyStick"
+);
+
+let pointer=null;
+
+function updateJoystick(x,y){
+
+    const rect=joystickArea.getBoundingClientRect();
+
+    let dx=x-rect.left-75;
+    let dy=y-rect.top-75;
+
+    const distance=Math.hypot(dx,dy);
+    const limit=45;
+
+    if(distance>limit){
+
+        dx=dx/distance*limit;
+        dy=dy/distance*limit;
+    }
+
+    input.x=dx/limit;
+    input.z=dy/limit;
+
+    joyStick.style.transform=
+        `translate(${dx}px,${dy}px)`;
+}
+
+function resetJoystick(){
+
+    pointer=null;
+    input.x=0;
+    input.z=0;
+
+    joyStick.style.transform=
+        "translate(0,0)";
+}
+
+joystickArea.addEventListener(
+    "pointerdown",
+    e=>{
+
+        pointer=e.pointerId;
+
+        joystickArea.setPointerCapture(pointer);
+
+        updateJoystick(
+            e.clientX,
+            e.clientY
+        );
+    }
+);
+
+joystickArea.addEventListener(
+    "pointermove",
+    e=>{
+
+        if(e.pointerId===pointer)
+            updateJoystick(
+                e.clientX,
+                e.clientY
+            );
+    }
+);
+
+joystickArea.addEventListener(
+    "pointerup",
+    resetJoystick
+);
+
+joystickArea.addEventListener(
+    "pointercancel",
+    resetJoystick
+);
+
+/* =====================================================
+   BOTÕES
+===================================================== */
+
+const runButton=document.getElementById("run");
+
+runButton.addEventListener(
+    "pointerdown",
+    ()=>{
+
+        input.running=true;
+        runButton.classList.add("active");
+    }
+);
+
+function stopRun(){
+
+    input.running=false;
+    runButton.classList.remove("active");
+}
+
+runButton.addEventListener("pointerup",stopRun);
+runButton.addEventListener("pointercancel",stopRun);
+
+document.getElementById("crouch")
+.addEventListener("click",()=>{
+
+    state.crouching=!state.crouching;
+
+    document.getElementById("crouch")
+    .classList.toggle(
+        "active",
+        state.crouching
+    );
+});
+
+document.getElementById("action")
+.addEventListener("click",toggleHide);
+
+document.getElementById("flash")
+.addEventListener("click",()=>{
+
+    if(state.battery>0)
+        state.flashlight=!state.flashlight;
+});
+
+/* =====================================================
+   HUD
+===================================================== */
+
+function updateHUD(){
+
+    document.getElementById("healthFill")
+    .style.width=state.health+"%";
+
+    document.getElementById("staminaFill")
+    .style.width=state.stamina+"%";
+
+    document.getElementById("batteryFill")
+    .style.width=state.battery+"%";
+
+    const interaction=
+        document.getElementById("interaction");
+
+    if(state.hidden){
+
+        interaction.textContent=
+            "AÇÃO: SAIR DO ESCONDERIJO";
+
+        interaction.classList.add("show");
+
+        return;
+    }
+
+    const hide=nearestHide();
+
+    if(hide){
+
+        interaction.textContent=
+            hide.type==="locker"
+            ?"AÇÃO: ENTRAR NO ARMÁRIO"
+            :"AÇÃO: ESCONDER-SE";
+
+        interaction.classList.add("show");
+
+    }else{
+
+        interaction.classList.remove("show");
+    }
+}
+
+/* =====================================================
+   MENSAGENS
+===================================================== */
+
+let messageTimer;
+
+function showMessage(text){
+
+    clearTimeout(messageTimer);
+
+    const message=
+        document.getElementById("message");
+
+    message.textContent=text;
+    message.classList.add("show");
+
+    messageTimer=setTimeout(()=>{
+        message.classList.remove("show");
+    },3000);
+}
+
+/* =====================================================
+   FULLSCREEN
+===================================================== */
+
+async function requestFullscreen(){
+
+    try{
+
+        if(document.documentElement.requestFullscreen)
+            await document.documentElement.requestFullscreen();
+
+    }catch(e){}
+
+    window.scrollTo(0,1);
+}
+
+/* =====================================================
+   INÍCIO
+===================================================== */
+
+let playing=false;
+
+document.getElementById("start")
+.addEventListener("click",async()=>{
+
+    await requestFullscreen();
+
+    document.getElementById("menu")
+    .style.display="none";
+
+    playing=true;
+
+    showMessage(
+        "O HOSPITAL ESTÁ ABANDONADO HÁ ANOS..."
+    );
+
+    setTimeout(()=>{
+        showMessage(
+            "MAS VOCÊ NÃO ESTÁ SOZINHO."
+        );
+    },4000);
+});
+
+/* =====================================================
+   ANIMAÇÃO
+===================================================== */
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    const delta=Math.min(
+        clock.getDelta(),
+        .05
+    );
+
+    const time=clock.elapsedTime;
+
+    if(playing){
+
+        movePlayer(delta);
+        updateFlashlight(delta,time);
+        updateInfected(delta,time);
+        updateCamera(delta);
+        updateHUD();
+
+        for(const item of emergencyLights){
+
+            const flicker=Math.sin(
+                time*9+item.seed
+            );
+
+            item.light.intensity=
+                flicker>.8
+                ?item.intensity*.25
+                :item.intensity;
+        }
+    }
+
+    renderer.render(scene,camera);
+}
+
+camera.position.set(
+    player.position.x,
+    20,
+    player.position.z+14
+);
+
+camera.lookAt(player.position);
+
+animate();
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+addEventListener("resize",()=>{
+
+    camera.aspect=
+        innerWidth/innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        innerWidth,
+        innerHeight
+    );
+});
+
+</script>
+
+</body>
+</html>
