@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Arashi Fabricio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Arashi Fabricio"></canvas>
+  <div id="hud" class="hidden">
+    <div class="hud-left"><span id="stageLabel">Fase 1</span><span id="coinLabel">● 0</span></div>
+    <div class="hud-right"><span id="hpLabel">♥♥♥</span><button id="pauseBtn">Ⅱ</button></div>
+  </div>
+  <div id="menu" class="screen">
+    <div class="brand"><div class="moon"></div><h1>ARASHI<br><b>FABRICIO</b></h1><p>Sombras • Lâminas • Destino</p></div>
+    <div class="menu-buttons">
+      <button id="playBtn">JOGAR</button><button id="stagesBtn">FASES</button><button id="skillsBtn">HABILIDADES</button><button id="settingsBtn">CONFIGURAÇÕES</button>
+    </div>
+    <small>Protótipo web original inspirado em plataforma ninja 2D</small>
+  </div>
+  <div id="panel" class="screen hidden"></div>
+  <div id="touch" class="hidden">
+    <div class="move"><button data-key="left">◀</button><button data-key="right">▶</button></div>
+    <div class="actions"><button data-key="jump">↑</button><button data-key="attack">⚔</button><button data-key="shuriken">✦</button><button data-key="dash">➜</button></div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
