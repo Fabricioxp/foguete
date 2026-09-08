@@ -1,192 +1,1011 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>O HOSPITAL — CAPÍTULO 1</title>
+<title>O HOSPITAL — CAPÍTULO 1 (EDIÇÃO DEFINITIVA)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050605;font-family:Arial,sans-serif;color:#eee}
-canvas{position:fixed;inset:0;width:100%!important;height:100%!important}
-#rotate{display:none;position:fixed;inset:0;z-index:100;background:#050605;align-items:center;justify-content:center;text-align:center;padding:25px}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030504;font-family:'Rajdhani',sans-serif;color:#e2e8e4}
+canvas{position:fixed;inset:0;width:100%!important;height:100%!important;z-index:1}
+
+/* Scanline and CRT screen effect */
+#crt-overlay{position:fixed;inset:0;z-index:5;pointer-events:none;background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03));background-size:100% 3px, 6px 100%;opacity:0.75}
+
+#rotate{display:none;position:fixed;inset:0;z-index:100;background:#030504;align-items:center;justify-content:center;text-align:center;padding:25px}
 @media(orientation:portrait){#rotate{display:flex}}
-#menu,#story,#puzzle,#death,#ending{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.76);backdrop-filter:blur(7px)}
-.card{width:min(88vw,560px);padding:28px;border:1px solid #55615b;background:rgba(13,17,15,.96);box-shadow:0 20px 70px #000;text-align:center}
-h1{letter-spacing:6px;margin:0 0 8px;font-size:clamp(24px,5vw,42px)}
-p{font-size:13px;line-height:1.65;color:#c6cec9}
-button{border:1px solid #78857d;background:#19231e;color:#fff;padding:14px 22px;font-weight:bold;letter-spacing:1px}
-#hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:calc(8px + env(safe-area-inset-top)) 12px 12px}
-#top{display:flex;justify-content:space-between;gap:10px}
-.panel{background:rgba(5,8,7,.72);border:1px solid rgba(255,255,255,.13);padding:8px 11px;font-size:10px;letter-spacing:1px;backdrop-filter:blur(5px)}
-#objective{position:absolute;top:52px;left:50%;transform:translateX(-50%);max-width:55%;text-align:center}
-.bar{width:120px;height:5px;background:#222;margin-top:4px}.fill{height:100%;background:#b7c5bb}
-#prompt{position:absolute;bottom:118px;left:50%;transform:translateX(-50%);display:none;padding:10px 17px;background:rgba(8,12,10,.92);border:1px solid #9aa79f;border-radius:20px;font-size:11px}
+
+#menu,#story,#puzzle,#death,#ending,#pauseModal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(3,5,4,0.88);backdrop-filter:blur(8px)}
+.card{width:min(90vw,580px);padding:32px;border:1px solid #3c4c43;background:rgba(10,15,12,0.96);box-shadow:0 25px 80px rgba(0,0,0,0.95), inset 0 0 15px rgba(45,80,60,0.15);text-align:center;border-radius:4px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#4f6b5b,transparent)}
+h1{font-family:'Share Tech Mono',monospace;letter-spacing:6px;margin:0 0 10px;font-size:clamp(26px,5.5vw,44px);color:#d1e0d7;text-shadow:0 0 12px rgba(100,200,140,0.2)}
+h2{font-family:'Share Tech Mono',monospace;letter-spacing:3px;margin:0 0 12px;color:#a3c2b0}
+p{font-size:15px;line-height:1.65;color:#abb8b0;margin-bottom:20px}
+
+button{border:1px solid #4a5d51;background:linear-gradient(180deg,#1c2821,#0e1612);color:#e2ece5;padding:14px 26px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:2px;cursor:pointer;transition:all .18s ease;box-shadow:0 6px 20px rgba(0,0,0,0.6);border-radius:3px}
+button:hover{border-color:#748e7d;background:linear-gradient(180deg,#27382f,#141e19);color:#fff;box-shadow:0 0 12px rgba(90,140,110,0.3)}
+button:active{transform:scale(0.96);filter:brightness(1.2)}
+
+#damage{position:fixed;inset:0;z-index:35;pointer-events:none;background:radial-gradient(circle,transparent 30%,rgba(180,10,10,0.65));opacity:0;transition:opacity .12s}
+#heartbeat-border{position:fixed;inset:0;z-index:34;pointer-events:none;box-shadow:inset 0 0 50px rgba(200,0,0,0);transition:box-shadow .2s}
+
+#crosshair{position:fixed;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);z-index:12;pointer-events:none;opacity:.6}
+#crosshair:before,#crosshair:after{content:"";position:absolute;background:#9ebdaa}
+#crosshair:before{width:2px;height:16px;left:7px;top:0}
+#crosshair:after{height:2px;width:16px;left:0;top:7px}
+
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) 16px 16px}
+#top{display:flex;justify-content:space-between;gap:12px}
+.panel{background:rgba(6,10,8,0.85);border:1px solid rgba(70,95,80,0.35);padding:10px 14px;font-size:12px;font-family:'Share Tech Mono',monospace;letter-spacing:1px;backdrop-filter:blur(6px);border-radius:3px;box-shadow:0 4px 15px rgba(0,0,0,0.5)}
+#objective{position:absolute;top:65px;left:50%;transform:translateX(-50%);max-width:60%;text-align:center;color:#b2cbbe;border-color:rgba(100,140,120,0.4)}
+.bar{width:130px;height:6px;background:#151d18;margin-top:5px;border:1px solid rgba(255,255,255,0.1);border-radius:2px;overflow:hidden}
+.fill{height:100%;transition:width .15s ease}
+#hpfill{background:linear-gradient(90deg,#8b2a2a,#d94545)}
+#stfill{background:linear-gradient(90deg,#2a7150,#45be87)}
+
+#prompt{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);display:none;padding:10px 22px;background:rgba(6,10,8,0.92);border:1px solid #638270;border-radius:20px;font-size:13px;font-family:'Share Tech Mono',monospace;color:#d7e8de;box-shadow:0 0 15px rgba(0,0,0,0.8), 0 0 8px rgba(80,140,110,0.3)}
+
+#inventory-bar{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
+.inv-slot{width:38px;height:38px;background:rgba(8,12,10,0.8);border:1px solid rgba(80,100,90,0.4);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:18px;position:relative}
+.inv-slot.active{border-color:#52a379;box-shadow:0 0 8px rgba(80,180,120,0.4)}
+.inv-count{position:absolute;bottom:1px;right:3px;font-size:10px;font-family:'Share Tech Mono',monospace;color:#a8c4b4}
+
 #controls{position:fixed;inset:0;z-index:20;pointer-events:none}
-#joy{position:absolute;left:24px;bottom:22px;width:128px;height:128px;border:2px solid rgba(255,255,255,.2);border-radius:50%;pointer-events:auto;background:rgba(20,28,24,.25)}
-#stick{position:absolute;width:54px;height:54px;left:35px;top:35px;border-radius:50%;background:rgba(170,190,180,.3);border:1px solid rgba(255,255,255,.45)}
+#joy{position:absolute;left:24px;bottom:24px;width:130px;height:130px;border:2px solid rgba(120,150,135,0.3);border-radius:50%;pointer-events:auto;background:rgba(12,18,15,0.35);backdrop-filter:blur(2px)}
+#stick{position:absolute;width:56px;height:56px;left:35px;top:35px;border-radius:50%;background:rgba(140,175,155,0.35);border:1px solid rgba(255,255,255,0.4)}
 #look{position:absolute;right:0;top:0;width:52%;height:100%;pointer-events:auto}
-#buttons{position:absolute;right:18px;bottom:20px;display:flex;gap:8px;align-items:end;pointer-events:auto}
-.ctrl{width:62px;height:62px;border-radius:50%;padding:4px;font-size:9px;background:rgba(15,22,18,.82)}
-.ctrl.main{width:78px;height:78px;border-color:#aab7af}
-#toast{position:fixed;z-index:40;top:20%;left:50%;transform:translateX(-50%);opacity:0;transition:.25s;background:rgba(5,8,7,.92);border:1px solid #78857d;padding:11px 18px;font-size:11px;max-width:70%;text-align:center}
-#toast.show{opacity:1}
-.choice{width:100%;margin-top:8px;text-align:left}
+#buttons{position:absolute;right:20px;bottom:22px;display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
+.ctrl{width:64px;height:64px;border-radius:50%;padding:4px;font-size:10px;font-family:'Rajdhani',sans-serif;font-weight:700;background:rgba(12,18,15,0.85);border:1px solid #4a5e52;color:#d5e3da;box-shadow:0 6px 20px rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ctrl:active{background:#23352a;border-color:#7da18c}
+.ctrl.main{width:80px;height:80px;border-color:#6c8c79;background:rgba(18,28,23,0.92);font-size:11px}
+#flash.active{border-color:#a2c9b2;box-shadow:0 0 15px rgba(140,210,170,0.4)}
+
+#toast{position:fixed;z-index:40;top:18%;left:50%;transform:translateX(-50%);opacity:0;transition:all .25s ease;background:rgba(6,10,8,0.95);border:1px solid #526f5e;padding:12px 22px;font-size:13px;font-family:'Share Tech Mono',monospace;max-width:80%;text-align:center;border-radius:3px;box-shadow:0 10px 30px rgba(0,0,0,0.8);color:#d0e3d8}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(5px)}
+
+.choice-btn{width:100%;margin-top:10px;text-align:left;display:flex;justify-content:space-between;align-items:center}
 .hidden{display:none!important}
 </style>
 </head>
 <body>
-<div id="rotate"><div><h2>GIRE O CELULAR</h2><p>Este jogo foi desenvolvido para ser jogado na horizontal.</p></div></div>
+
+<div id="crt-overlay"></div>
+<div id="rotate"><div><h2>GIRE O DISPOSITIVO</h2><p>Este jogo foi desenvolvido para ser jogado na horizontal (modo paisagem).</p></div></div>
 <div id="game"></div>
+<div id="damage"></div>
+<div id="heartbeat-border"></div>
+<div id="crosshair"></div>
+
 <div id="hud">
- <div id="top"><div class="panel"><b id="room">ALA DE EMERGÊNCIA</b><br><span id="chapter">CAPÍTULO 1 — O DESPERTAR</span></div><div class="panel">SAÚDE <span id="hp">100%</span><div class="bar"><div class="fill" id="hpbar"></div></div><br>ENERGIA <span id="st">100%</span><div class="bar"><div class="fill" id="stbar"></div></div></div></div>
+ <div id="top">
+   <div class="panel">
+     <b id="room">ALA DE EMERGÊNCIA</b><br>
+     <span id="chapter" style="color:#7f988a;font-size:10px">CAPÍTULO 1 — O DESPERTAR</span>
+   </div>
+   <div id="inventory-bar">
+     <div class="inv-slot" id="slot-medkit" title="Kit Médico (Aperte 1 ou Toque)">🩹<span class="inv-count" id="medkit-count">0</span></div>
+     <div class="inv-slot" id="slot-key">🔑</div>
+     <div class="inv-slot" id="slot-card">💳</div>
+   </div>
+   <div class="panel">
+     SAÚDE <span id="hp">100%</span><div class="bar"><div class="fill" id="hpfill" style="width:100%"></div></div>
+     ENERGIA <span id="st">100%</span><div class="bar"><div class="fill" id="stfill" style="width:100%"></div></div>
+   </div>
+ </div>
  <div id="objective" class="panel">OBJETIVO: Encontre uma maneira de sair da ala de emergência.</div>
  <div id="prompt"></div>
 </div>
+
 <div id="toast"></div>
+
 <div id="controls">
- <div id="joy"><div id="stick"></div></div><div id="look"></div>
- <div id="buttons"><button class="ctrl" id="flash">🔦<br>LUZ</button><button class="ctrl" id="run">🏃<br>CORRER</button><button class="ctrl" id="crouch">⬇<br>AGACHAR</button><button class="ctrl main" id="action">✋<br>INTERAGIR</button></div>
+ <div id="joy"><div id="stick"></div></div>
+ <div id="look"></div>
+ <div id="buttons">
+   <button class="ctrl" id="crouch">⬇<br>AGACHAR</button>
+   <button class="ctrl" id="run">🏃<br>CORRER</button>
+   <button class="ctrl" id="flash">🔦<br>LANTERNA</button>
+   <button class="ctrl main" id="action">✋<br>INTERAGIR</button>
+ </div>
 </div>
-<div id="menu"><div class="card"><h1>O HOSPITAL</h1><p>CAPÍTULO 1 — O DESPERTAR</p><p>VERSÃO ATUAL SEM SISTEMA DE SOM</p><p>Você acorda sozinho em um hospital devastado. A energia falhou, os corredores foram abandonados às pressas e algo ainda se move entre as alas.</p><button id="start">INICIAR HISTÓRIA</button></div></div>
-<div id="story" class="hidden"><div class="card"><h2 id="storyTitle"></h2><p id="storyText"></p><button id="storyNext">CONTINUAR</button></div></div>
-<div id="puzzle" class="hidden"><div class="card"><h2 id="puzzleTitle">PAINEL ELÉTRICO</h2><p id="puzzleText"></p><div id="puzzleChoices"></div></div></div>
-<div id="death" class="hidden"><div class="card"><h1>VOCÊ MORREU</h1><p>O hospital não terminou com você.</p><button onclick="location.reload()">TENTAR NOVAMENTE</button></div></div>
-<div id="ending" class="hidden"><div class="card"><h1>FIM DO CAPÍTULO</h1><p id="endingText"></p><button onclick="location.reload()">JOGAR NOVAMENTE</button></div></div>
+
+<!-- MODALS -->
+<div id="menu">
+  <div class="card">
+    <h1>O HOSPITAL</h1>
+    <p style="letter-spacing:2px;color:#708a7b;font-size:12px;margin-top:-10px">CAPÍTULO 1 — O DESPERTAR (EDIÇÃO DEFINITIVA)</p>
+    <p>Você acorda sozinho em um hospital devastado. A energia falhou, os corredores foram abandonados e algo faminto se move na escuridão.</p>
+    <p style="font-size:12px;color:#8ba395">🔊 Áudio sintético procedural ativado. Dica: Agachar evita fazer barulho e esconde você dos infectados.</p>
+    <button id="start">ENTRAR NO HOSPITAL</button>
+  </div>
+</div>
+
+<div id="story" class="hidden">
+  <div class="card">
+    <h2 id="storyTitle"></h2>
+    <p id="storyText"></p>
+    <button id="storyNext">CONTINUAR</button>
+  </div>
+</div>
+
+<div id="puzzle" class="hidden">
+  <div class="card">
+    <h2 id="puzzleTitle">PAINEL DO GERADOR</h2>
+    <p id="puzzleText"></p>
+    <div id="puzzleChoices"></div>
+  </div>
+</div>
+
+<div id="death" class="hidden">
+  <div class="card">
+    <h1 style="color:#d94545">VOCÊ MORREU</h1>
+    <p>A escuridão do hospital consumiu você.</p>
+    <button onclick="location.reload()">REINICIAR CAPÍTULO</button>
+  </div>
+</div>
+
+<div id="ending" class="hidden">
+  <div class="card">
+    <h1 style="color:#45be87">FIM DO CAPÍTULO 1</h1>
+    <p id="endingText"></p>
+    <button onclick="location.reload()">JOGAR NOVAMENTE</button>
+  </div>
+</div>
+
 <script>
-const container=document.getElementById('game'), scene=new THREE.Scene(), clock=new THREE.Clock();
-scene.background=new THREE.Color(0x070908);scene.fog=new THREE.FogExp2(0x070908,.045);
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,120);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;container.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0x53605a,0x050505,.55));
-camera.position.set(0,3.8,-35);
-camera.lookAt(new THREE.Vector3(0,1.3,-28));
-const colliders=[], interactives=[], enemies=[], rooms=[];
-const player=new THREE.Group();player.position.set(0,0,-28);scene.add(player);
-const bodyMat=new THREE.MeshStandardMaterial({color:0x27312c,roughness:.9});
-const torso=new THREE.Mesh(new THREE.BoxGeometry(.7,1,.42),bodyMat);torso.position.y=1.25;player.add(torso);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.29,12,12),new THREE.MeshStandardMaterial({color:0xb18b72}));head.position.y=2.02;player.add(head);
-const legs=[];for(let x of [-.2,.2]){let m=new THREE.Mesh(new THREE.BoxGeometry(.25,.8,.25),new THREE.MeshStandardMaterial({color:0x202522}));m.position.set(x,.4,0);player.add(m);legs.push(m)}
-function tex(base,detail){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle=base;x.fillRect(0,0,256,256);for(let i=0;i<900;i++){x.fillStyle=detail;x.globalAlpha=Math.random()*.18;x.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*4,1+Math.random()*4)}x.globalAlpha=1;let t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t}
-const floorMat=new THREE.MeshStandardMaterial({map:tex('#303330','#101310'),roughness:.95}), wallMat=new THREE.MeshStandardMaterial({map:tex('#606761','#171b18'),roughness:.95}), darkMat=new THREE.MeshStandardMaterial({color:0x222723,roughness:.9}), metalMat=new THREE.MeshStandardMaterial({color:0x56605c,roughness:.5,metalness:.7});
-function box(x,y,z,w,h,d,mat=wallMat,collide=true){let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;scene.add(m);if(collide)colliders.push({x1:x-w/2,x2:x+w/2,z1:z-d/2,z2:z+d/2});return m}
-function floor(x,z,w,d){let m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),floorMat);m.rotation.x=-Math.PI/2;m.position.set(x,.01,z);m.receiveShadow=true;scene.add(m)}
-function wall(x,z,w,d){box(x,2.7,z,w,5.4,d,wallMat,true)}
-function collide(p,r=.48){
-    return colliders.some(c=>{
-        const px=Math.max(c.x1,Math.min(p.x,c.x2));
-        const pz=Math.max(c.z1,Math.min(p.z,c.z2));
-        const dx=p.x-px, dz=p.z-pz;
-        return dx*dx+dz*dz<r*r;
-    });
+// SINTETIZADOR DE ÁUDIO PROCEDURAL (Sem dependências externas de áudio)
+class SoundEngine {
+  constructor() {
+    this.ctx = null;
+    this.initialized = false;
+  }
+  init() {
+    if (this.initialized) return;
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.initialized = true;
+      this.startAmbient();
+    } catch(e) {}
+  }
+  playFootstep(speedMultiplier = 1) {
+    if (!this.initialized) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+    
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(180 * speedMultiplier, this.ctx.currentTime);
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(60 + Math.random()*20, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + 0.12);
+    
+    gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+    
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.13);
+  }
+  playFlash() {
+    if (!this.initialized) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.06);
+  }
+  playPickup() {
+    if (!this.initialized) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(523.25, now);
+    osc.frequency.setValueAtTime(659.25, now + 0.08);
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.26);
+  }
+  playHeal() {
+    if (!this.initialized) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(700, now + 0.3);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.36);
+  }
+  playDoor() {
+    if (!this.initialized) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.46);
+  }
+  playHurt() {
+    if (!this.initialized) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.26);
+  }
+  playMonsterRoar() {
+    if (!this.initialized) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(90, now);
+    osc.frequency.linearRampToValueAtTime(140, now + 0.2);
+    osc.frequency.linearRampToValueAtTime(50, now + 0.6);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.66);
+  }
+  playPuzzleBeep(success=true) {
+    if (!this.initialized) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(success ? 880 : 220, now);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.21);
+  }
+  startAmbient() {
+    if (!this.initialized) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(55, this.ctx.currentTime);
+    gain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+  }
 }
-function lamp(x,z,on=true){let l=new THREE.PointLight(on?0xaebbad:0x402020,on?1.4:.2,12);l.position.set(x,4.7,z);scene.add(l);box(x,5,z,.55,.1,1.4,metalMat,false);return l}
-function sign(x,z,text){const c=document.createElement('canvas');c.width=512;c.height=128;const q=c.getContext('2d');q.fillStyle='#cfd5cf';q.font='bold 38px Arial';q.fillText(text,20,75);let sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,3.8,z);sp.scale.set(4,1,1);scene.add(sp)}
-function addRoom(name,x,z,w,d){rooms.push({name,x,z,w,d});floor(x,z,w,d)}
-// MAPA: corredor central e alas conectadas
-addRoom('ALA DE EMERGÊNCIA',0,-25,12,22);addRoom('RECEPÇÃO',0,-5,20,14);addRoom('CORREDOR PRINCIPAL',0,12,12,20);addRoom('ENFERMARIA',-16,10,18,18);addRoom('FARMÁCIA',16,10,16,14);addRoom('UTI',-16,30,18,18);addRoom('MANUTENÇÃO',16,30,16,18);addRoom('SAÍDA PRINCIPAL',0,42,14,12);
-// paredes externas e divisões com portas abertas
-wall(0,-36,12,.5);wall(-6,-25,.5,22);wall(6,-25,.5,22);
-wall(-10,-12,8,.5);wall(10,-12,8,.5); // abertura central
-wall(-10,2,.5,14);wall(10,2,.5,14);
-wall(-6,2,8,.5);wall(6,2,8,.5);
-wall(-10,12,.5,18);wall(10,12,.5,18);
-wall(-6,22,8,.5);wall(6,22,8,.5);
-wall(-10,32,.5,18);wall(10,32,.5,18);
-wall(0,48,14,.5);wall(-7,42,.5,12);wall(7,42,.5,12);
-wall(-19,10,.5,18);wall(-13,1,12,.5);wall(-13,19,12,.5);
-wall(19,10,.5,14);wall(13,3,12,.5);wall(13,17,12,.5);
-wall(-19,30,.5,18);wall(-13,21,12,.5);wall(-13,39,12,.5);
-wall(19,30,.5,18);wall(13,21,12,.5);wall(13,39,12,.5);
-for(let z=-29;z<45;z+=10)lamp(0,z,z!==12);
-sign(0,-31,'EMERGÊNCIA');sign(0,-8,'RECEPÇÃO');sign(-16,3,'ENFERMARIA');sign(16,5,'FARMÁCIA');sign(-16,23,'UTI');sign(16,23,'MANUTENÇÃO');
-// detalhes
-function bed(x,z){box(x,.65,z,2.4,.3,4.5,metalMat,true);box(x,1,z,2.2,.35,4,darkMat,false);box(x,1.9,z-1.9,2.4,1.6,.15,metalMat,false)}
-for(let x of [-16,-12])for(let z of [6,12])bed(x,z);
-for(let x of [-17,-13])for(let z of [27,33])bed(x,z);
-for(let z of [-28,-23,-18]){box(-3,1,z,1.5,2,1,metalMat,true);box(3,1,z,1.5,2,1,metalMat,true)}
-box(-2,1,-6,5,2,1.4,darkMat,true);box(4,1,-6,3,2,1.2,darkMat,true);
-for(let z of [6,11,14])box(16,1,z,2.5,2,1,metalMat,true);
-for(let z of [26,32,36])box(16,1,z,3,2,1.5,darkMat,true);
-// story objects
-let powerOn=false, noteRead=false, pharmacyUnlocked=false, generatorFixed=false, cardFound=false, exitUnlocked=false;
-function interactive(mesh,prompt,fn){interactives.push({mesh,prompt,fn,used:false})}
-const note=box(-3,.85,-25,.5,.06,.7,new THREE.MeshStandardMaterial({color:0xe1d6b5}),false);
-interactive(note,'Ler prontuário abandonado',o=>{noteRead=true;story('PRONTUÁRIO 237','Paciente transferido para a UTI às pressas. Última anotação: “Não deixem a equipe de manutenção desligar o gerador. A contenção depende da energia.”');scene.remove(o.mesh);o.used=true;setObjective('OBJETIVO: Restaure a energia do hospital.');});
-const genPanel=box(16,1.5,31,1.2,2,.35,metalMat,false);
-interactive(genPanel,'Examinar gerador',()=>{if(!noteRead){toast('Talvez exista alguma pista sobre como restaurar a energia.');return}openPuzzle();});
-const keyMesh=box(16,.9,9,.35,.12,.7,new THREE.MeshStandardMaterial({color:0xd7c264,metalness:.6}),false);
-interactive(keyMesh,'Pegar chave da farmácia',o=>{
-if(!generatorFixed){toast('Está escuro demais. Primeiro restaure a energia.');return}
-pharmacyUnlocked=true;o.used=true;scene.remove(o.mesh);
-toast('CHAVE DA FARMÁCIA OBTIDA.');
-setObjective('OBJETIVO: Entre na farmácia e procure suprimentos.');
+const audio = new SoundEngine();
+
+const container = document.getElementById('game');
+const scene = new THREE.Scene();
+const clock = new THREE.Clock();
+
+scene.background = new THREE.Color(0x040605);
+scene.fog = new THREE.FogExp2(0x040605, 0.048);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 120);
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+// Luz ambiente suave
+const ambientLight = new THREE.HemisphereLight(0x404e46, 0x020302, 0.45);
+scene.add(ambientLight);
+
+const flashlight = new THREE.SpotLight(0xedfaf2, 5.5, 30, Math.PI/6.8, 0.5, 1.5);
+flashlight.castShadow = true;
+flashlight.shadow.mapSize.set(512, 512);
+flashlight.shadow.camera.near = 0.5;
+flashlight.shadow.camera.far = 30;
+
+const flashlightTarget = new THREE.Object3D();
+scene.add(flashlightTarget);
+flashlight.target = flashlightTarget;
+camera.add(flashlight);
+camera.add(flashlightTarget);
+flashlight.position.set(0.2, -0.2, 0);
+flashlightTarget.position.set(0, 0, -10);
+
+const flashlightGlow = new THREE.PointLight(0xcde3d7, 0.4, 4);
+camera.add(flashlightGlow);
+
+function makeTex(bgColor, detailColor, pattern='noise') {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0,0,256,256);
+  
+  if (pattern === 'tiles') {
+    ctx.strokeStyle = detailColor;
+    ctx.lineWidth = 2;
+    for (let i=0; i<=256; i+=64) {
+      ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,256); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(256,i); ctx.stroke();
+    }
+  }
+  
+  ctx.fillStyle = detailColor;
+  for (let i=0; i<800; i++) {
+    ctx.globalAlpha = Math.random() * 0.15;
+    ctx.fillRect(Math.random()*256, Math.random()*256, 1+Math.random()*4, 1+Math.random()*4);
+  }
+  ctx.globalAlpha = 1;
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+const floorMat = new THREE.MeshStandardMaterial({ map: makeTex('#282b28', '#101411', 'tiles'), roughness: 0.8, metalness: 0.1 });
+floorMat.map.repeat.set(8,8);
+const wallMat = new THREE.MeshStandardMaterial({ map: makeTex('#525a54', '#1d231f', 'noise'), roughness: 0.9 });
+const metalMat = new THREE.MeshStandardMaterial({ color: 0x4a5450, roughness: 0.4, metalness: 0.7 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x181c19, roughness: 0.9 });
+const bloodMat = new THREE.MeshStandardMaterial({ color: 0x660808, roughness: 0.3, metalness: 0.1 });
+
+const colliders = [];
+const interactives = [];
+const enemies = [];
+const rooms = [];
+const doors = [];
+
+const player = new THREE.Group();
+player.position.set(0, 0, -28);
+scene.add(player);
+
+const torso = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.42), new THREE.MeshStandardMaterial({color: 0x222c27}));
+torso.position.y = 1.25;
+player.add(torso);
+
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshStandardMaterial({color: 0xa8836f}));
+head.position.y = 2.02;
+player.add(head);
+
+const legs = [];
+for (let x of [-0.2, 0.2]) {
+  let m = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.8, 0.24), new THREE.MeshStandardMaterial({color: 0x1a201c}));
+  m.position.set(x, 0.4, 0);
+  player.add(m);
+  legs.push(m);
+}
+
+function box(x, y, z, w, h, d, mat=wallMat, collide=true) {
+  let m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  m.castShadow = m.receiveShadow = true;
+  scene.add(m);
+  if (collide) colliders.push({x1: x-w/2, x2: x+w/2, z1: z-d/2, z2: z+d/2});
+  return m;
+}
+
+function floor(x, z, w, d) {
+  let m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), floorMat);
+  m.rotation.x = -Math.PI/2;
+  m.position.set(x, 0.01, z);
+  m.receiveShadow = true;
+  scene.add(m);
+}
+
+function wall(x, z, w, d) {
+  box(x, 2.7, z, w, 5.4, d, wallMat, true);
+}
+
+function collide(p, r=0.45) {
+  return colliders.some(c => {
+    const px = Math.max(c.x1, Math.min(p.x, c.x2));
+    const pz = Math.max(c.z1, Math.min(p.z, c.z2));
+    const dx = p.x - px, dz = p.z - pz;
+    return (dx*dx + dz*dz) < (r*r);
+  });
+}
+
+const ceilingLamps = [];
+function lamp(x, z, on=true) {
+  let l = new THREE.PointLight(on ? 0xa8baad : 0x3a1212, on ? 1.2 : 0.2, 12);
+  l.position.set(x, 4.7, z);
+  scene.add(l);
+  box(x, 4.95, z, 0.6, 0.1, 1.4, metalMat, false);
+  ceilingLamps.push({ light: l, baseOn: on, flickerTimer: Math.random()*10 });
+  return l;
+}
+
+function doorMesh(x, z, w, d, angle=0) {
+  let pivot = new THREE.Group();
+  pivot.position.set(x - w/2, 0, z);
+  let dMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 2.8, d), metalMat);
+  dMesh.position.set(w/2, 1.4, 0);
+  dMesh.castShadow = true;
+  pivot.add(dMesh);
+  scene.add(pivot);
+  
+  let doorObj = { pivot, open: false, targetAngle: angle };
+  doors.push(doorObj);
+  return doorObj;
+}
+
+function sign(x, z, text) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 128;
+  const q = c.getContext('2d');
+  q.fillStyle = '#101814'; q.fillRect(0,0,512,128);
+  q.strokeStyle = '#4a6354'; q.lineWidth = 6; q.strokeRect(4,4,504,120);
+  q.fillStyle = '#b8d4c4'; q.font = 'bold 36px Rajdhani'; q.textAlign = 'center';
+  q.fillText(text, 256, 75);
+  let sp = new THREE.Sprite(new THREE.SpriteMaterial({map: new THREE.CanvasTexture(c), transparent: true}));
+  sp.position.set(x, 3.8, z);
+  sp.scale.set(4, 1, 1);
+  scene.add(sp);
+}
+
+function addRoom(name, x, z, w, d) {
+  rooms.push({name, x, z, w, d});
+  floor(x, z, w, d);
+}
+
+addRoom('ALA DE EMERGÊNCIA', 0, -25, 12, 22);
+addRoom('RECEPÇÃO', 0, -5, 20, 14);
+addRoom('CORREDOR PRINCIPAL', 0, 12, 12, 20);
+addRoom('ENFERMARIA', -16, 10, 18, 18);
+addRoom('FARMÁCIA', 16, 10, 16, 14);
+addRoom('UTI', -16, 30, 18, 18);
+addRoom('MANUTENÇÃO', 16, 30, 16, 18);
+addRoom('SAÍDA PRINCIPAL', 0, 42, 14, 12);
+
+// Paredes e corredores
+wall(0, -36, 12, 0.5); wall(-6, -25, 0.5, 22); wall(6, -25, 0.5, 22);
+wall(-10, -12, 8, 0.5); wall(10, -12, 8, 0.5);
+wall(-10, 2, 0.5, 14); wall(10, 2, 0.5, 14);
+wall(-6, 2, 8, 0.5); wall(6, 2, 8, 0.5);
+wall(-10, 12, 0.5, 18); wall(10, 12, 0.5, 18);
+wall(-6, 22, 8, 0.5); wall(6, 22, 8, 0.5);
+wall(-10, 32, 0.5, 18); wall(10, 32, 0.5, 18);
+wall(0, 48, 14, 0.5); wall(-7, 42, 0.5, 12); wall(7, 42, 0.5, 12);
+
+wall(-19, 10, 0.5, 18); wall(-13, 1, 12, 0.5); wall(-13, 19, 12, 0.5);
+wall(19, 10, 0.5, 14); wall(13, 3, 12, 0.5); wall(13, 17, 12, 0.5);
+wall(-19, 30, 0.5, 18); wall(-13, 21, 12, 0.5); wall(-13, 39, 12, 0.5);
+wall(19, 30, 0.5, 18); wall(13, 21, 12, 0.5); wall(13, 39, 12, 0.5);
+
+for (let z=-29; z<45; z+=10) lamp(0, z, z!==12);
+sign(0, -31, 'EMERGÊNCIA'); sign(0, -8, 'RECEPÇÃO'); sign(-16, 3, 'ENFERMARIA');
+sign(16, 5, 'FARMÁCIA'); sign(-16, 23, 'UTI'); sign(16, 23, 'MANUTENÇÃO');
+
+// Camas de hospital
+function bed(x, z) {
+  box(x, 0.65, z, 2.4, 0.3, 4.5, metalMat, true);
+  box(x, 1.0, z, 2.2, 0.35, 4.0, darkMat, false);
+  box(x, 1.9, z-1.9, 2.4, 1.6, 0.15, metalMat, false);
+  // Soro Hospitalar
+  box(x+1.1, 1.6, z-1.5, 0.1, 3.2, 0.1, metalMat, false);
+}
+for (let x of [-16, -12]) for (let z of [6, 12]) bed(x, z);
+for (let x of [-17, -13]) for (let z of [27, 33]) bed(x, z);
+
+// Manchas de sangue no chão
+for (let i=0; i<6; i++) {
+  let b = new THREE.Mesh(new THREE.PlaneGeometry(2+Math.random()*2, 2+Math.random()*2), bloodMat);
+  b.rotation.x = -Math.PI/2;
+  b.position.set((Math.random()-0.5)*20, 0.02, (Math.random()-0.5)*50);
+  scene.add(b);
+}
+
+// Partículas de poeira suspensas
+const particleGeo = new THREE.BufferGeometry();
+const particleCount = 150;
+const posArray = new Float32Array(particleCount * 3);
+for (let i=0; i<particleCount*3; i+=3) {
+  posArray[i] = (Math.random()-0.5)*30;
+  posArray[i+1] = Math.random()*4;
+  posArray[i+2] = (Math.random()-0.5)*70;
+}
+particleGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+const particleMat = new THREE.PointsMaterial({ size: 0.08, color: 0x9bc2ab, transparent: true, opacity: 0.35 });
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+let inventory = { medkits: 0, pharmacyKey: false, accessCard: false };
+let noteRead = false, generatorFixed = false, cardClueFound = false, exitUnlocked = false;
+
+function updateInventoryUI() {
+  document.getElementById('medkit-count').textContent = inventory.medkits;
+  document.getElementById('slot-key').classList.toggle('active', inventory.pharmacyKey);
+  document.getElementById('slot-card').classList.toggle('active', inventory.accessCard);
+}
+
+function interactive(mesh, prompt, fn) {
+  interactives.push({ mesh, prompt, fn, used: false });
+}
+
+// Prontuário
+const note = box(-3, 0.85, -25, 0.5, 0.06, 0.7, new THREE.MeshStandardMaterial({color: 0xded2ad}), false);
+interactive(note, 'Ler prontuário abandonado', o => {
+  noteRead = true;
+  audio.playPickup();
+  story('PRONTUÁRIO 237', '“Paciente transferido para a UTI às pressas. O sistema elétrico da ala norte colapsou. AVISO: Não acione a manutenção sem verificar a sequência dos reatores.”');
+  scene.remove(o.mesh);
+  o.used = true;
+  setObjective('OBJETIVO: Vá até a Manutenção e restaure o gerador.');
 });
-const medCab=box(15,.9,12,1.5,1.8,.5,metalMat,false);
-interactive(medCab,'Abrir armário da farmácia',()=>{if(!pharmacyUnlocked){toast('O armário está trancado.');return}story('A MENSAGEM','Dentro do armário há uma gravação interrompida: “Se alguém encontrar isto, o cartão de acesso foi levado para a UTI... depois que a energia caiu, ninguém voltou.”');cardFound=true;setObjective('OBJETIVO: Vá até a UTI e encontre o cartão de acesso.');});
-const card=box(-16,1.1,34,.8,.08,.5,new THREE.MeshStandardMaterial({color:0x3d8d71}),false);
-interactive(card,'Pegar cartão de acesso',o=>{if(!cardFound){toast('Você ainda não encontrou nenhuma pista sobre o cartão de acesso.');return}o.used=true;scene.remove(o.mesh);exitUnlocked=true;story('UMA SAÍDA','O cartão possui o símbolo da administração. Do lado de fora, você ouve um impacto metálico vindo da saída principal.');setObjective('OBJETIVO: Volte à saída principal.');});
-const exitPanel=box(2,1.5,46.6,.6,1.4,.3,new THREE.MeshStandardMaterial({color:0x7d2929}),false);
-interactive(exitPanel,'Usar cartão na saída',()=>{if(!exitUnlocked){toast('A porta exige um cartão de acesso.');return}document.getElementById('endingText').textContent='Você conseguiu sair do hospital, mas a cidade está em silêncio. Ao longe, sirenes e incêndios mostram que o pesadelo apenas começou.';document.getElementById('ending').classList.remove('hidden')});
-// infected
-function infected(x,z){let g=new THREE.Group();let m=new THREE.Mesh(new THREE.BoxGeometry(.8,1.1,.5),new THREE.MeshStandardMaterial({color:0x313932}));m.position.y=1.2;g.add(m);let h=new THREE.Mesh(new THREE.SphereGeometry(.3,10,10),new THREE.MeshStandardMaterial({color:0x75806f}));h.position.y=2;g.add(h);g.position.set(x,0,z);scene.add(g);enemies.push({g,home:new THREE.Vector3(x,0,z),target:new THREE.Vector3(x,0,z),state:'patrol',speed:2.1,t:0,attack:0})}
-infected(-16,16);infected(16,18);infected(-16,39);
-let hp=100,stamina=100,flash=true,crouching=false,running=false,playing=false,camYaw=Math.PI,camPitch=.22,joy={x:0,y:0},hidden=false;
-function setObjective(t){document.getElementById('objective').textContent=t}
-function toast(t){let e=document.getElementById('toast');e.textContent=t;e.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>e.classList.remove('show'),2600)}
-function story(title,text){document.getElementById('storyTitle').textContent=title;document.getElementById('storyText').textContent=text;document.getElementById('story').classList.remove('hidden')}
-document.getElementById('storyNext').onclick=()=>document.getElementById('story').classList.add('hidden');
-function openPuzzle(){document.getElementById('puzzleText').textContent='O gerador possui três chaves. Um aviso parcialmente queimado diz: “ESTABILIZE O SISTEMA: 2 → 1 → 3”.';let c=document.getElementById('puzzleChoices');c.innerHTML='';let seq=[];for(let n of [1,2,3]){let b=document.createElement('button');b.className='choice';b.textContent='ACIONAR CHAVE '+n;b.onclick=()=>{seq.push(n);if(seq.length===3){if(seq.join(',')==='2,1,3'){powerOn=generatorFixed=true;document.getElementById('puzzle').classList.add('hidden');toast('ENERGIA RESTAURADA.');setObjective('OBJETIVO: Procure uma forma de acessar a farmácia.');story('ENERGIA','As luzes da ala voltam lentamente. Por alguns segundos, você vê uma silhueta atravessando o corredor da recepção.');}else{seq=[];toast('Sequência incorreta. O sistema reiniciou.')}}};c.appendChild(b)}document.getElementById('puzzle').classList.remove('hidden')}
-function action(){
-if(!document.getElementById('story').classList.contains('hidden') ||
-   !document.getElementById('puzzle').classList.contains('hidden') ||
-   !document.getElementById('ending').classList.contains('hidden')) return;
-let best=null,dist=2.3;for(const o of interactives)if(!o.used){let d=o.mesh.position.distanceTo(player.position);if(d<dist){dist=d;best=o}}if(best)best.fn(best)}
-document.getElementById('action').onclick=action;
-document.getElementById('flash').onclick=()=>{flash=!flash};
-document.getElementById('crouch').onclick=()=>{crouching=!crouching;document.getElementById('crouch').style.opacity=crouching?.55:1};
-const runBtn=document.getElementById('run');runBtn.onpointerdown=()=>running=true;['pointerup','pointercancel','pointerleave'].forEach(e=>runBtn.addEventListener(e,()=>running=false));
-addEventListener('pointerup',()=>running=false);
-addEventListener('pointercancel',()=>running=false);
-const joyEl=document.getElementById('joy'),stick=document.getElementById('stick');let joyId=null;
-function updJoy(e){let r=joyEl.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),l=Math.hypot(dx,dy),m=38;if(l>m){dx*=m/l;dy*=m/l}joy.x=dx/m;joy.y=dy/m;stick.style.transform=`translate(${dx}px,${dy}px)`}
-joyEl.addEventListener('pointerdown',e=>{joyId=e.pointerId;joyEl.setPointerCapture(joyId);updJoy(e)});joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joyId)updJoy(e)});function endJoy(){joyId=null;joy.x=joy.y=0;stick.style.transform='translate(0,0)'}joyEl.addEventListener('pointerup',endJoy);joyEl.addEventListener('pointercancel',endJoy);
-let lookId=null,lastLook=null;const look=document.getElementById('look');look.addEventListener('pointerdown',e=>{lookId=e.pointerId;lastLook=[e.clientX,e.clientY];look.setPointerCapture(lookId)});look.addEventListener('pointermove',e=>{if(e.pointerId!==lookId)return;camYaw-= (e.clientX-lastLook[0])*.008;camPitch=Math.max(-.25,Math.min(.55,camPitch-(e.clientY-lastLook[1])*.005));lastLook=[e.clientX,e.clientY]});look.addEventListener('pointerup',()=>lookId=null);look.addEventListener('pointercancel',()=>lookId=null);
-function update(dt,t){
-let room=rooms.find(r=>Math.abs(player.position.x-r.x)<r.w/2&&Math.abs(player.position.z-r.z)<r.d/2);if(room)document.getElementById('room').textContent=room.name;
-let forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw)),right=new THREE.Vector3(forward.z,0,-forward.x);
-let mv=forward.clone().multiplyScalar(-joy.y).add(right.multiplyScalar(joy.x));if(mv.length()>1)mv.normalize();let sprint=running&&stamina>1&&mv.length()>.1&&!crouching;let speed=crouching?2.1:sprint?5.8:3.6;if(sprint)stamina=Math.max(0,stamina-28*dt);else stamina=Math.min(100,stamina+15*dt);
-let next=player.position.clone().addScaledVector(mv,speed*dt);if(!collide(next))player.position.copy(next);if(mv.length()>.1){let a=Math.atan2(mv.x,mv.z);player.rotation.y+=Math.atan2(Math.sin(a-player.rotation.y),Math.cos(a-player.rotation.y))*Math.min(1,dt*10);for(let i=0;i<2;i++)legs[i].rotation.x=Math.sin(t*(sprint?12:8)+(i?Math.PI:0))*.55}
-for(const e of enemies){e.attack-=dt;let d=e.g.position.distanceTo(player.position);if(d<9&&!crouching)e.state='chase';if(e.state==='chase')e.target.copy(player.position);else{e.t-=dt;if(e.t<0){e.t=3+Math.random()*3;e.target.copy(e.home).add(new THREE.Vector3((Math.random()-.5)*6,0,(Math.random()-.5)*6))}}let dir=e.target.clone().sub(e.g.position);dir.y=0;if(dir.length()>.4){dir.normalize();let n=e.g.position.clone().addScaledVector(dir,(e.state==='chase'?e.speed*1.25:e.speed*.45)*dt);if(!collide(n,.5))e.g.position.copy(n);e.g.rotation.y=Math.atan2(dir.x,dir.z)}if(d<1.25&&e.attack<=0){e.attack=1;hp=Math.max(0,hp-20);toast('ALGO TE ATINGIU!');if(hp<=0)document.getElementById('death').classList.remove('hidden')}}
-let nearest=interactives.filter(o=>!o.used).sort((a,b)=>a.mesh.position.distanceTo(player.position)-b.mesh.position.distanceTo(player.position))[0],pr=document.getElementById('prompt');if(nearest&&nearest.mesh.position.distanceTo(player.position)<2.3){pr.style.display='block';pr.textContent='✋ '+nearest.prompt}else pr.style.display='none';
-document.getElementById('hp').textContent=Math.round(hp)+'%';document.getElementById('hpbar').style.width=hp+'%';document.getElementById('st').textContent=Math.round(stamina)+'%';document.getElementById('stbar').style.width=stamina+'%';
-let desired=player.position.clone().add(new THREE.Vector3(Math.sin(camYaw)*7,3.8,Math.cos(camYaw)*7));camera.position.lerp(desired,Math.min(1,dt*7));let lookAt=player.position.clone().add(new THREE.Vector3(0,1.35,0));camera.lookAt(lookAt);
+
+// Kit Médico Coletável 1
+const med1 = box(-15, 0.85, 10, 0.6, 0.3, 0.6, new THREE.MeshStandardMaterial({color: 0xd9e5de}), false);
+interactive(med1, 'Pegar Kit Médico', o => {
+  inventory.medkits++;
+  audio.playPickup();
+  updateInventoryUI();
+  toast('KIT MÉDICO OBTIDO (+1)');
+  scene.remove(o.mesh);
+  o.used = true;
+});
+
+// Gerador
+const genPanel = box(16, 1.5, 31, 1.2, 2.0, 0.35, metalMat, false);
+interactive(genPanel, 'Examinar painel elétrico', () => {
+  if (!noteRead) {
+    toast('Você precisa entender como o sistema funciona primeiro.');
+    return;
+  }
+  openPuzzle();
+});
+
+// Chave da Farmácia
+const keyMesh = box(16, 0.9, 9, 0.35, 0.12, 0.7, new THREE.MeshStandardMaterial({color: 0xd4af37, metalness:0.8}), false);
+interactive(keyMesh, 'Pegar Chave da Farmácia', o => {
+  if (!generatorFixed) {
+    toast('Está escuro demais aqui. Restaure a energia primeiro.');
+    return;
+  }
+  inventory.pharmacyKey = true;
+  audio.playPickup();
+  updateInventoryUI();
+  o.used = true;
+  scene.remove(o.mesh);
+  toast('CHAVE DA FARMÁCIA OBTIDA');
+  setObjective('OBJETIVO: Abra a Farmácia e busque o cartão de acesso.');
+});
+
+// Porta da Farmácia com Animação
+const pharmacyDoor = doorMesh(10, 10, 0.2, 3.5, 0);
+const pharmacyDoorTrigger = box(10, 1.4, 10, 1.5, 2.8, 2.0, darkMat, false);
+pharmacyDoorTrigger.visible = false;
+interactive(pharmacyDoorTrigger, 'Usar Chave na Porta da Farmácia', o => {
+  if (!inventory.pharmacyKey) {
+    toast('A porta da farmácia está trancada. Você precisa da chave.');
+    return;
+  }
+  audio.playDoor();
+  pharmacyDoor.targetAngle = Math.PI/2;
+  o.used = true;
+  toast('PORTA DA FARMÁCIA DESTRANCADA');
+});
+
+// Armário da Farmácia
+const medCab = box(15, 0.9, 12, 1.5, 1.8, 0.5, metalMat, false);
+interactive(medCab, 'Examinar armário de remédios', () => {
+  if (!inventory.pharmacyKey) {
+    toast('O armário está trancado.');
+    return;
+  }
+  cardClueFound = true;
+  audio.playPickup();
+  story('BILHETE DA FARMÁCIA', '“O cartão de segurança da administração foi levado para a UTI durante a evacuação. Aquele garoto infectado... ele ainda está lá dentro.”');
+  setObjective('OBJETIVO: Vá até a UTI e recupere o Cartão de Acesso.');
+});
+
+// Cartão de Acesso na UTI
+const card = box(-16, 1.1, 34, 0.8, 0.08, 0.5, new THREE.MeshStandardMaterial({color: 0x2e8b57, metalness:0.5}), false);
+interactive(card, 'Pegar Cartão de Acesso', o => {
+  if (!cardClueFound) {
+    toast('Você ainda não sabe o que procurar aqui.');
+    return;
+  }
+  inventory.accessCard = true;
+  audio.playPickup();
+  updateInventoryUI();
+  o.used = true;
+  scene.remove(o.mesh);
+  exitUnlocked = true;
+  story('CARTÃO DE ACESSO OBTIDO', 'Você possui o cartão master. Um barulho alto reverbera no corredor principal... algo acordou!');
+  setObjective('OBJETIVO: Corra para a SAÍDA PRINCIPAL!');
+});
+
+// Saída Principal
+const exitPanel = box(2, 1.5, 46.6, 0.6, 1.4, 0.3, new THREE.MeshStandardMaterial({color: 0x8b0000}), false);
+interactive(exitPanel, 'Usar Cartão na Saída', () => {
+  if (!inventory.accessCard) {
+    toast('A porta trancada exige o Cartão de Acesso Master.');
+    return;
+  }
+  audio.playDoor();
+  document.getElementById('endingText').textContent = 'Você passou pela porta pesada e a trancou atrás de si. A noite lá fora está fria e em chamas. O pesadelo do hospital ficou para trás... por enquanto.';
+  document.getElementById('ending').classList.remove('hidden');
+});
+
+function createInfected(x, z) {
+  let g = new THREE.Group();
+  let m = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.15, 0.5), new THREE.MeshStandardMaterial({color: 0x2d3630}));
+  m.position.y = 1.15;
+  g.add(m);
+  
+  let h = new THREE.Mesh(new THREE.SphereGeometry(0.3, 10, 10), new THREE.MeshStandardMaterial({color: 0x6e7b69}));
+  h.position.y = 1.95;
+  g.add(h);
+  
+  // Olhos vermelhos brilhantes
+  const eyeMat = new THREE.MeshBasicMaterial({color: 0xff2200});
+  for (let ex of [-0.11, 0.11]) {
+    let eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), eyeMat);
+    eye.position.set(ex, 2.0, 0.26);
+    g.add(eye);
+  }
+  
+  g.position.set(x, 0, z);
+  scene.add(g);
+  
+  enemies.push({
+    g,
+    home: new THREE.Vector3(x, 0, z),
+    target: new THREE.Vector3(x, 0, z),
+    state: 'patrol',
+    speed: 2.2,
+    t: 0,
+    attackCd: 0,
+    roarCd: 0
+  });
 }
-function startGame(e){
-    if(e) e.preventDefault();
-    const menu=document.getElementById('menu');
-    menu.classList.add('hidden');
-    menu.style.display='none';
-    playing=true;
-    document.documentElement.requestFullscreen?.().catch(()=>{});
-    if(screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
-    story('O DESPERTAR','Você não se lembra de como chegou aqui. Há sangue seco no chão e o hospital parece ter sido abandonado às pressas. Primeiro, você precisa entender o que aconteceu.');
+
+createInfected(-16, 16);
+createInfected(16, 18);
+createInfected(-16, 39);
+
+let hp = 100, stamina = 100, flash = true, crouching = false, running = false, playing = false;
+let camYaw = Math.PI, camPitch = 0.2, joy = {x:0, y:0};
+let hitFlash = 0, walkBob = 0, heartbeatTimer = 0;
+
+function setObjective(t) { document.getElementById('objective').textContent = t; }
+
+function toast(t) {
+  let e = document.getElementById('toast');
+  e.textContent = t;
+  e.classList.add('show');
+  clearTimeout(window.tt);
+  window.tt = setTimeout(() => e.classList.remove('show'), 2800);
 }
-const startButton=document.getElementById('start');
-startButton.addEventListener('click',startGame);
-startButton.addEventListener('touchend',startGame,{passive:false});
-function loop(){
-requestAnimationFrame(loop);
-let dt=Math.min(.05,clock.getDelta()),t=clock.getElapsedTime();
-const morto=!document.getElementById('death').classList.contains('hidden');
-const bloqueado=!document.getElementById('story').classList.contains('hidden') ||
-               !document.getElementById('puzzle').classList.contains('hidden') ||
-               !document.getElementById('ending').classList.contains('hidden');
-if(playing && !morto && !bloqueado) update(dt,t);
-renderer.render(scene,camera);
+
+function story(title, text) {
+  document.getElementById('storyTitle').textContent = title;
+  document.getElementById('storyText').textContent = text;
+  document.getElementById('story').classList.remove('hidden');
+}
+
+document.getElementById('storyNext').onclick = () => document.getElementById('story').classList.add('hidden');
+
+function useMedkit() {
+  if (inventory.medkits > 0 && hp < 100) {
+    inventory.medkits--;
+    hp = Math.min(100, hp + 40);
+    audio.playHeal();
+    updateInventoryUI();
+    toast('SAÚDE RESTAURADA (+40%)');
+  } else if (hp >= 100) {
+    toast('SUA SAÚDE JÁ ESTÁ NO MÁXIMO.');
+  } else {
+    toast('NENHUM KIT MÉDICO DISPONÍVEL.');
+  }
+}
+document.getElementById('slot-medkit').onclick = useMedkit;
+
+function openPuzzle() {
+  document.getElementById('puzzleText').textContent = 'O relé do gerador exige uma sequência de pulso de três etapas: [2] → [1] → [3].';
+  let c = document.getElementById('puzzleChoices');
+  c.innerHTML = '';
+  let seq = [];
+  for (let n of [1, 2, 3]) {
+    let b = document.createElement('button');
+    b.className = 'choice-btn';
+    b.innerHTML = `<span>ACIONAR INTERRUPTOR ${n}</span> <span>⚡</span>`;
+    b.onclick = () => {
+      audio.playPuzzleBeep(true);
+      seq.push(n);
+      if (seq.length === 3) {
+        if (seq.join(',') === '2,1,3') {
+          generatorFixed = true;
+          document.getElementById('puzzle').classList.add('hidden');
+          toast('ENERGIA RESTAURADA COM SUCESSO');
+          setObjective('OBJETIVO: Encontre a Chave da Farmácia.');
+          story('ENERGIA RESTAURADA', 'Os geradores resmungam e as luzes do hospital voltam a piscar. O caminho para a farmácia agora está acessível.');
+        } else {
+          seq = [];
+          audio.playPuzzleBeep(false);
+          toast('SEQUÊNCIA INCORRETA. REINICIANDO PAINEL...');
+        }
+      }
+    };
+    c.appendChild(b);
+  }
+  document.getElementById('puzzle').classList.remove('hidden');
+}
+
+function action() {
+  if (!document.getElementById('story').classList.contains('hidden') ||
+      !document.getElementById('puzzle').classList.contains('hidden') ||
+      !document.getElementById('ending').classList.contains('hidden')) return;
+      
+  let best = null, dist = 2.6;
+  for (const o of interactives) if (!o.used) {
+    const d = o.mesh.position.distanceTo(player.position);
+    if (d < dist) { dist = d; best = o; }
+  }
+  if (best) best.fn(best);
+  else toast('Nada para interagir por perto.');
+}
+document.getElementById('action').onclick = action;
+
+function setFlash(on) {
+  flash = on;
+  flashlight.visible = flash;
+  flashlightGlow.visible = flash;
+  audio.playFlash();
+  document.getElementById('flash').classList.toggle('active', flash);
+}
+document.getElementById('flash').onclick = () => setFlash(!flash);
+
+document.getElementById('crouch').onclick = () => {
+  crouching = !crouching;
+  if (crouching) running = false;
+  document.getElementById('crouch').style.opacity = crouching ? 0.5 : 1;
+};
+
+const runBtn = document.getElementById('run');
+runBtn.onpointerdown = e => { e.preventDefault(); running = true; runBtn.setPointerCapture?.(e.pointerId); };
+['pointerup','pointercancel','pointerleave'].forEach(ev => runBtn.addEventListener(ev, () => running = false));
+
+// Joystick de toque
+const joyEl = document.getElementById('joy'), stick = document.getElementById('stick');
+let joyId = null;
+function updJoy(e) {
+  let r = joyEl.getBoundingClientRect(), dx = e.clientX - (r.left + r.width/2), dy = e.clientY - (r.top + r.height/2), l = Math.hypot(dx,dy), m = 40;
+  if (l > m) { dx *= m/l; dy *= m/l; }
+  joy.x = dx/m; joy.y = dy/m;
+  stick.style.transform = `translate(${dx}px,${dy}px)`;
+}
+joyEl.addEventListener('pointerdown', e => { joyId = e.pointerId; joyEl.setPointerCapture(joyId); updJoy(e); });
+joyEl.addEventListener('pointermove', e => { if (e.pointerId === joyId) updJoy(e); });
+function endJoy() { joyId = null; joy.x = joy.y = 0; stick.style.transform = 'translate(0,0)'; }
+joyEl.addEventListener('pointerup', endJoy);
+joyEl.addEventListener('pointercancel', endJoy);
+
+// Controle de visão por toque
+let lookId = null, lastLook = null;
+const look = document.getElementById('look');
+look.addEventListener('pointerdown', e => { lookId = e.pointerId; lastLook = [e.clientX, e.clientY]; look.setPointerCapture(lookId); });
+look.addEventListener('pointermove', e => {
+  if (e.pointerId !== lookId) return;
+  camYaw -= (e.clientX - lastLook[0]) * 0.007;
+  camPitch = Math.max(-0.25, Math.min(0.55, camPitch - (e.clientY - lastLook[1]) * 0.005));
+  lastLook = [e.clientX, e.clientY];
+});
+look.addEventListener('pointerup', () => lookId = null);
+look.addEventListener('pointercancel', () => lookId = null);
+
+let footstepTimer = 0;
+
+function update(dt, t) {
+  // Atualiza nome do cômodo
+  let room = rooms.find(r => Math.abs(player.position.x - r.x) < r.w/2 && Math.abs(player.position.z - r.z) < r.d/2);
+  if (room) document.getElementById('room').textContent = room.name;
+  
+  // Animação de portas
+  for (let d of doors) {
+    d.pivot.rotation.y = THREE.MathUtils.lerp(d.pivot.rotation.y, d.targetAngle, dt * 5);
+  }
+  
+  // Movimento do jogador
+  let forward = new THREE.Vector3(Math.sin(camYaw), 0, Math.cos(camYaw));
+  let right = new THREE.Vector3(forward.z, 0, -forward.x);
+  let mv = forward.clone().multiplyScalar(joy.y).add(right.multiplyScalar(joy.x));
+  if (mv.length() > 1) mv.normalize();
+  
+  let sprint = running && stamina > 1 && mv.length() > 0.1 && !crouching;
+  let speed = crouching ? 2.0 : sprint ? 5.8 : 3.5;
+  
+  if (sprint) stamina = Math.max(0, stamina - 26*dt);
+  else stamina = Math.min(100, stamina + 16*dt);
+  
+  let next = player.position.clone().addScaledVector(mv, speed*dt);
+  if (!collide(next)) player.position.copy(next);
+  
+  // Som de passos
+  if (mv.length() > 0.1) {
+    footstepTimer -= dt * (sprint ? 2.2 : crouching ? 0.8 : 1.4);
+    if (footstepTimer <= 0) {
+      audio.playFootstep(sprint ? 1.4 : crouching ? 0.6 : 1.0);
+      footstepTimer = 0.5;
+    }
+    let a = Math.atan2(mv.x, mv.z);
+    player.rotation.y += Math.atan2(Math.sin(a - player.rotation.y), Math.cos(a - player.rotation.y)) * Math.min(1, dt*10);
+    for (let i=0; i<2; i++) legs[i].rotation.x = Math.sin(t*(sprint?14:9)+(i?Math.PI:0)) * 0.5;
+  }
+  
+  // Animação de lâmpadas oscilantes
+  for (let l of ceilingLamps) {
+    l.flickerTimer += dt;
+    if (generatorFixed && l.baseOn) {
+      l.light.intensity = 1.2 + Math.sin(l.flickerTimer*15)*0.15;
+    }
+  }
+  
+  // IA dos Infectados
+  for (const e of enemies) {
+    e.attackCd -= dt;
+    e.roarCd -= dt;
+    let d = e.g.position.distanceTo(player.position);
+    
+    // Percepção baseada em luz e ruído (furtividade)
+    let detectDist = crouching ? 4.5 : sprint ? 12.0 : 8.0;
+    if (flash) detectDist += 3.0;
+    
+    if (d < detectDist) {
+      if (e.state !== 'chase' && e.roarCd <= 0) {
+        audio.playMonsterRoar();
+        e.roarCd = 8;
+      }
+      e.state = 'chase';
+    }
+    
+    if (e.state === 'chase') {
+      e.target.copy(player.position);
+    } else {
+      e.t -= dt;
+      if (e.t < 0) {
+        e.t = 3 + Math.random()*4;
+        e.target.copy(e.home).add(new THREE.Vector3((Math.random()-0.5)*8, 0, (Math.random()-0.5)*8));
+      }
+    }
+    
+    let dir = e.target.clone().sub(e.g.position);
+    dir.y = 0;
+    if (dir.length() > 0.4) {
+      dir.normalize();
+      let n = e.g.position.clone().addScaledVector(dir, (e.state === 'chase' ? e.speed*1.2 : e.speed*0.4) * dt);
+      if (!collide(n, 0.5)) e.g.position.copy(n);
+      e.g.rotation.y = Math.atan2(dir.x, dir.z);
+    }
+    
+    // Ataque do infectado
+    if (d < 1.3 && e.attackCd <= 0) {
+      e.attackCd = 1.1;
+      hp = Math.max(0, hp - 22);
+      hitFlash = 0.4;
+      audio.playHurt();
+      toast('UM INFECTADO ATACOU VOCÊ!');
+      if (navigator.vibrate) navigator.vibrate([60, 40, 80]);
+      if (hp <= 0) document.getElementById('death').classList.remove('hidden');
+    }
+  }
+  
+  // Prompt de interação
+  let nearest = interactives.filter(o => !o.used).sort((a,b) => a.mesh.position.distanceTo(player.position) - b.mesh.position.distanceTo(player.position))[0];
+  let pr = document.getElementById('prompt');
+  if (nearest && nearest.mesh.position.distanceTo(player.position) < 2.4) {
+    pr.style.display = 'block';
+    pr.textContent = '✋ ' + nearest.prompt;
+  } else pr.style.display = 'none';
+  
+  // HUD Status
+  document.getElementById('hp').textContent = Math.round(hp) + '%';
+  document.getElementById('hpfill').style.width = hp + '%';
+  document.getElementById('st').textContent = Math.round(stamina) + '%';
+  document.getElementById('stfill').style.width = stamina + '%';
+  
+  hitFlash = Math.max(0, hitFlash - dt);
+  document.getElementById('damage').style.opacity = hitFlash;
+  
+  // Batimento cardíaco visual para baixa vida
+  if (hp < 35) {
+    heartbeatTimer += dt * 4;
+    document.getElementById('heartbeat-border').style.boxShadow = `inset 0 0 ${20 + Math.sin(heartbeatTimer)*25}px rgba(200,0,0,0.6)`;
+  } else {
+    document.getElementById('heartbeat-border').style.boxShadow = 'none';
+  }
+  
+  flashlight.intensity = flash ? 5.2 + Math.sin(t*20)*0.1 : 0;
+  
+  // Posicionamento de Câmera suave
+  let camDist = crouching ? 5.8 : 6.8;
+  let desired = player.position.clone().add(new THREE.Vector3(Math.sin(camYaw)*camDist, 3.4 + camPitch*2.0, Math.cos(camYaw)*camDist));
+  camera.position.lerp(desired, Math.min(1, dt*9));
+  camera.lookAt(player.position.clone().add(new THREE.Vector3(0, 1.3 + camPitch*1.6, 0)));
+}
+
+function startGame(e) {
+  if (e) e.preventDefault();
+  audio.init();
+  const menu = document.getElementById('menu');
+  menu.classList.add('hidden');
+  playing = true;
+  story('O DESPERTAR', 'Você acorda na ala de emergência. As luzes estão apagas e os corredores cheiram a ferrugem e sangue. Encontre uma saída antes que o que sobrou neste hospital encontre você.');
+}
+document.getElementById('start').onclick = startGame;
+
+// Suporte para Teclado (Desktop)
+addEventListener('keydown', e => {
+  if (e.code === 'KeyF') setFlash(!flash);
+  if (e.code === 'KeyE') action();
+  if (e.code === 'Digit1') useMedkit();
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') running = true;
+  if (e.code === 'ControlLeft' || e.code === 'KeyC') crouching = !crouching;
+  if (e.code === 'KeyW') joy.y = -1;
+  if (e.code === 'KeyS') joy.y = 1;
+  if (e.code === 'KeyA') joy.x = -1;
+  if (e.code === 'KeyD') joy.x = 1;
+});
+
+addEventListener('keyup', e => {
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') running = false;
+  if (['KeyW','KeyS'].includes(e.code)) joy.y = 0;
+  if (['KeyA','KeyD'].includes(e.code)) joy.x = 0;
+});
+
+setFlash(true);
+
+function loop() {
+  requestAnimationFrame(loop);
+  let dt = Math.min(0.05, clock.getDelta()), t = clock.getElapsedTime();
+  const morto = !document.getElementById('death').classList.contains('hidden');
+  const bloqueado = !document.getElementById('story').classList.contains('hidden') ||
+                 !document.getElementById('puzzle').classList.contains('hidden') ||
+                 !document.getElementById('ending').classList.contains('hidden');
+  if (playing && !morto && !bloqueado) update(dt, t);
+  renderer.render(scene, camera);
 }
 loop();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 </script>
-</body></html>
+</body>
+</html>
+```
