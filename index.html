@@ -60,6 +60,8 @@ const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,120);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;container.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0x53605a,0x050505,.55));
+camera.position.set(0,3.8,-35);
+camera.lookAt(new THREE.Vector3(0,1.3,-28));
 const colliders=[], interactives=[], enemies=[], rooms=[];
 const player=new THREE.Group();player.position.set(0,0,-28);scene.add(player);
 const bodyMat=new THREE.MeshStandardMaterial({color:0x27312c,roughness:.9});
@@ -71,7 +73,14 @@ const floorMat=new THREE.MeshStandardMaterial({map:tex('#303330','#101310'),roug
 function box(x,y,z,w,h,d,mat=wallMat,collide=true){let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;scene.add(m);if(collide)colliders.push({x1:x-w/2,x2:x+w/2,z1:z-d/2,z2:z+d/2});return m}
 function floor(x,z,w,d){let m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),floorMat);m.rotation.x=-Math.PI/2;m.position.set(x,.01,z);m.receiveShadow=true;scene.add(m)}
 function wall(x,z,w,d){box(x,2.7,z,w,5.4,d,wallMat,true)}
-function collide(p,r=.48){return colliders.some(c=>Math.max(c.x1,Math.min(p.x,c.x2))!==undefined&&((p.x-Math.max(c.x1,Math.min(p.x,c.x2)))**2+(p.z-Math.max(c.z1,Math.min(p.z,c.z2)))**2<r*r)}
+function collide(p,r=.48){
+    return colliders.some(c=>{
+        const px=Math.max(c.x1,Math.min(p.x,c.x2));
+        const pz=Math.max(c.z1,Math.min(p.z,c.z2));
+        const dx=p.x-px, dz=p.z-pz;
+        return dx*dx+dz*dz<r*r;
+    });
+}
 function lamp(x,z,on=true){let l=new THREE.PointLight(on?0xaebbad:0x402020,on?1.4:.2,12);l.position.set(x,4.7,z);scene.add(l);box(x,5,z,.55,.1,1.4,metalMat,false);return l}
 function sign(x,z,text){const c=document.createElement('canvas');c.width=512;c.height=128;const q=c.getContext('2d');q.fillStyle='#cfd5cf';q.font='bold 38px Arial';q.fillText(text,20,75);let sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));sp.position.set(x,3.8,z);sp.scale.set(4,1,1);scene.add(sp)}
 function addRoom(name,x,z,w,d){rooms.push({name,x,z,w,d});floor(x,z,w,d)}
@@ -154,7 +163,19 @@ let nearest=interactives.filter(o=>!o.used).sort((a,b)=>a.mesh.position.distance
 document.getElementById('hp').textContent=Math.round(hp)+'%';document.getElementById('hpbar').style.width=hp+'%';document.getElementById('st').textContent=Math.round(stamina)+'%';document.getElementById('stbar').style.width=stamina+'%';
 let desired=player.position.clone().add(new THREE.Vector3(Math.sin(camYaw)*7,3.8,Math.cos(camYaw)*7));camera.position.lerp(desired,Math.min(1,dt*7));let lookAt=player.position.clone().add(new THREE.Vector3(0,1.35,0));camera.lookAt(lookAt);
 }
-document.getElementById('start').onclick=()=>{document.getElementById('menu').classList.add('hidden');playing=true;document.documentElement.requestFullscreen?.().catch(()=>{});screen.orientation?.lock?.('landscape').catch(()=>{});story('O DESPERTAR','Você não se lembra de como chegou aqui. Há sangue seco no chão e sirenes pararam há muito tempo. Primeiro, você precisa entender o que aconteceu.');}
+function startGame(e){
+    if(e) e.preventDefault();
+    const menu=document.getElementById('menu');
+    menu.classList.add('hidden');
+    menu.style.display='none';
+    playing=true;
+    document.documentElement.requestFullscreen?.().catch(()=>{});
+    if(screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
+    story('O DESPERTAR','Você não se lembra de como chegou aqui. Há sangue seco no chão e o hospital parece ter sido abandonado às pressas. Primeiro, você precisa entender o que aconteceu.');
+}
+const startButton=document.getElementById('start');
+startButton.addEventListener('click',startGame);
+startButton.addEventListener('touchend',startGame,{passive:false});
 function loop(){
 requestAnimationFrame(loop);
 let dt=Math.min(.05,clock.getDelta()),t=clock.getElapsedTime();
