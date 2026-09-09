@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Arashi Fabricio</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<canvas id="game"></canvas>
+<div id="hud" class="hidden"><div class="hudBox"><b id="actLabel">ATO I</b><span id="stageLabel">FASE 1</span><span id="coinLabel">◈ 0</span></div><div class="hudBox"><span id="hpLabel">♥♥♥</span><span id="abilityLabel">DASH</span><button id="pauseBtn">Ⅱ</button></div></div>
+<div id="menu" class="screen"><div class="brand"><div class="moon"><i></i></div><div class="kicker">UMA LENDA NAS SOMBRAS</div><h1>ARASHI<br><em>FABRICIO</em></h1><p>lâminas • sombras • destino</p></div><div class="menuButtons"><button id="playBtn">CONTINUAR</button><button id="stagesBtn">MAPA DE FASES</button><div class="split"><button id="skillsBtn">HABILIDADES</button><button id="artifactsBtn">ARTEFATOS</button></div><button id="settingsBtn">CONFIGURAÇÕES</button></div><div class="tip">A/D ou ◀▶ mover · Espaço pular · J atacar · K shuriken · L dash</div></div>
+<div id="panel" class="screen hidden"></div>
+<div id="touch" class="hidden"><div class="touchLeft"><button data-key="left">◀</button><button data-key="right">▶</button></div><div class="touchRight"><button data-key="jump">↑</button><button data-key="attack">⚔</button><button data-key="shuriken">✦</button><button data-key="dash">➜</button></div></div>
+</div><script src="game.js"></script></body></html>
